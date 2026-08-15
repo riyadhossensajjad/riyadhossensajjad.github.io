@@ -103,24 +103,24 @@ const SOFTWARE_SKILLS = [
    image points to an SVG placeholder in /assets — swap for real artwork anytime. */
 const PORTFOLIO_ITEMS = [
   {
-    title: "Silver Honor in Astronomy and Astrophysics Competition 2021",
+    title: "Silver Honor in the International Astronomy and Astrophysics Competition 2021",
     category: "certificate",
     image: "assets/badge-certificate.jpg",
-    description: "Solving fina round questions, which required comprehensive astronomy & astrophsycis knowledge, placed me among top 10% of all participants and earned me a SILVER HONOR.",
+    description: "Solving final round questions, which required comprehensive astronomy & astrophysics knowledge, placed me among the top 10% of all participants and earned me a SILVER HONOR.",
     link: "#"
   },
   {
     title: "Lauren Robel Bicentennial Scholarship by Indiana University Bloomington",
     category: "scholarship",
     image: "assets/badge-scholarship.jpg",
-    description: "Received $40000 (for four years) to continue my undergraduate degeree on Astronomy and Astrophysics.",
+    description: "Received $40000 (for four years) to continue my undergraduate degree in Astronomy and Astrophysics.",
     link: "#"
   },
   {
     title: "St. Thomas Aquinas Scholarship by Caldwell University",
     category: "scholarship",
     image: "assets/badge-scholarship-3.jpg",
-    description: "Received $33000 per year for four year to continue my undergraduate degeree on Computer Science and Engineering.",
+    description: "Received $33000 per year for four years to continue my undergraduate degree in Computer Science and Engineering.",
     link: "#"
   },
   {
@@ -148,21 +148,21 @@ const PORTFOLIO_ITEMS = [
     title: "Supermarket Billing Management System",
     category: "project",
     image: "assets/badge-project-2.jpg",
-    description: "A software, built using HTML, CSS, JavaScript, and SQL, that manage billing, logistic info, cutomer info, product info and store them into DATABASE",
+    description: "A software, built using HTML, CSS, JavaScript, and SQL, that manages billing, logistics info, customer info, product info, and stores them into DATABASE",
     link: "#"
   },
   {
     title: "Placed 3rd in the ACC Intra Art Competition 2021",
     category: "award",
     image: "assets/badge-award-2.jpg",
-    description: "Earned 3rd position in the intra college art competitions and received special recognition from the Principal.",
+    description: "Earned 3rd position in the intra-college art competitions and received special recognition from the Principal.",
     link: "#"
   },
   {
     title: "Herrmann Merit Award by Mercyhurst University",
     category: "scholarship",
     image: "assets/badge-scholarship-2.jpg",
-    description: "Received $27000 per year for four year to continue my undergraduate degree on Physics. ",
+    description: "Received $27000 per year for four years to continue my undergraduate degree in Physics. ",
     link: "#"
   }
 ];
@@ -170,7 +170,7 @@ const PORTFOLIO_ITEMS = [
 /* ---- Testimonials ---- */
 const TESTIMONIALS = [
   {
-    quote: "Riyad was thorough and detailed. He took direction well and created the scenes for our book with ease. Even on different time zones, he was always working to get the material finished when I asked for it. We look forward to working with him more in the future!",
+    quote: "Riyad was thorough and detailed. He took direction well and created the scenes for our book with ease. Even in different time zones, he was always working to get the material finished when I asked for it. We look forward to working with him more in the future!",
     name: "Nichole Stoffers",
     role: "Children's Book Author"
   },
