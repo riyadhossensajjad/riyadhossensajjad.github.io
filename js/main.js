@@ -184,6 +184,7 @@
         <div class="edu-card">
           <p class="edu-period">${e.period}</p>
           <h4 class="edu-degree">${e.degree}</h4>
+          <p class="edu-gpa">${e.gpa}</p>
           <p class="edu-school">${e.school}</p>
         </div>
       </div>`).join("");
