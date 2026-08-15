@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riyad Hossen Sajjad — Illustrator · Developer · Stargazer</title>
+<meta name="description" content="Portfolio of Riyad Hossen Sajjad — children's book illustrator, CSE Student, and astrophysics enthusiast.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@50;60;70;80;90;100;200;300;400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ NAVBAR ============ -->
+<header class="navbar" id="navbar">
+  <div class="container navbar-inner">
+    <a href="#home" class="brand">RIYAD.</a>
+    <nav class="nav-wrap">
+      <ul class="nav-links" id="navLinks">
+        <span class="nav-indicator" id="navIndicator"></span>
+        <li><a href="#home" data-nav>Home</a></li>
+        <li><a href="#about" data-nav>About</a></li>
+        <li><a href="#education" data-nav>Education</a></li>
+        <li><a href="#skills" data-nav>Skills</a></li>
+        <li><a href="#portfolio" data-nav>Portfolio</a></li>
+        <li><a href="#contact" data-nav>Contact</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </div>
+  
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero" id="home">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-overlay" aria-hidden="true"></div>
+  <div class="hero-field" id="heroField" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    <div class="container">
+      <h1 class="hero-static">Hello</h1>
+      <p class="hero-role"><span class="hero-role-prefix">I Am</span> <span id="roleText"></span><span class="cursor" aria-hidden="true"></span></p>
+
+      <div class="social-row" id="socialRow" aria-label="Social links"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section class="about section-pad" id="about">
+  <div class="container about-grid">
+    <div class="about-portrait" data-reveal>
+      <img src="assets/about-portrait.png" alt="Illustrated portrait of Riyad sketching, surrounded by orbiting stars">
+    </div>
+
+    <div class="about-copy" data-reveal>
+      <h2>About Me.</h2>
+      <p class="lead">I am a <b>Computer Science and Engineering Student</b> with a strong interest in <b>software development</b> and <b>data science.</b> Beyond core software development, I also love applying computational methods in fields of <b>astrophysics,</b> where data analysis and simulation play a crucial role.</p>
+
+      <div class="skillbars" id="aboutSkillbars"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDUCATION ============ -->
+<section class="education section-pad" id="education">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <h2>Education.</h2>
+    </div>
+
+    <div class="edu-timeline" id="eduTimeline" data-reveal-stagger></div>
+  </div>
+</section>
+
+<!-- ============ SKILLS ============ -->
+<section class="skills section-pad" id="skills">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <h2>Skills &amp; tools.</h2>
+    </div>
+
+    <div class="skills-tabs" role="tablist" aria-label="Skill categories">
+      <span class="skills-indicator" id="skillsIndicator"></span>
+      <button class="skills-tab active" data-tab="programming" role="tab" aria-selected="true">Programming Skills</button>
+      <button class="skills-tab" data-tab="software" role="tab" aria-selected="false">Software Skills</button>
+    </div>
+
+    <div class="skills-panel active" id="panel-programming" data-reveal-stagger>
+      <div class="skill-grid" id="programmingGrid"></div>
+    </div>
+    <div class="skills-panel" id="panel-software" data-reveal-stagger>
+      <div class="skill-grid" id="softwareGrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PORTFOLIO ============ -->
+<section class="portfolio section-pad" id="portfolio">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <h2>Portfolio.</h2>
+    </div>
+
+    <div class="filter-row" id="filterRow"></div>
+    <div class="portfolio-grid" id="portfolioGrid" data-reveal-stagger></div>
+  </div>
+</section>
+
+<!-- ============ TESTIMONIALS ============ -->
+<section class="testimonials section-pad" id="testimonials">
+  <div class="container">
+    <div class="section-head center" data-reveal>
+      <h2>Testimonials.</h2>
+    </div>
+
+    <div class="t-track-wrap">
+      <div id="testimonialTrack"></div>
+      <div class="t-dots" id="testimonialDots"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section class="stats section-pad" id="stats">
+  <div class="container">
+    <div class="stats-grid" id="statsGrid"></div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section class="contact section-pad" id="contact">
+  <div class="container contact-grid">
+    <div class="contact-info" data-reveal>
+      <h2>Contact me.</h2>
+      <div class="contact-list">
+        <div class="contact-item">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6l9 6 9-6M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1z"/></svg></span>
+          <div><p class="lbl">Email</p><p class="val" id="contactEmail">—</p></div>
+        </div>
+        <div class="contact-item">
+          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+          <div><p class="lbl">Location</p><p class="val" id="contactLocation">—</p></div>
+        </div>
+      </div>
+
+      <div class="contact-social" id="contactSocial" aria-label="Social links"></div>
+    </div>
+
+    <form class="contact-form" id="contactForm" data-reveal>
+      <div class="form-row">
+        <div class="field">
+          <label for="fname">Name</label>
+          <input id="fname" name="name" type="text" placeholder="Your name" required>
+        </div>
+        <div class="field">
+          <label for="femail">Email</label>
+          <input id="femail" name="email" type="email" placeholder="you@email.com" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fmsg">Message</label>
+        <textarea id="fmsg" name="message" rows="5" placeholder="Tell me a little about the project…" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Send message</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container">
+    <div>
+      <p class="footer-brand">Riyad Hossen Sajjad</p>
+    </div>
+    <div class="footer-links" id="footerSocial"></div>
+    <p class="footer-tag">© <span id="year"></span> Riyad Hossen Sajjad | All rights reserved.</p>
+  </div>
+</footer>
+<!-- ============ PORTFOLIO DETAILS MODAL ============ -->
+<div class="p-modal-backdrop" id="portfolioModal">
+  <div class="p-modal-content">
+    <button type="button" class="p-modal-close" id="modalClose">&times;</button>
+    <div class="p-modal-body" id="modalBody"></div>
+  </div>
+</div>
+<!-- ============ MOBILE DESKTOP ADVISORY POPUP ============ -->
+<div class="mobile-notice-backdrop" id="mobileNoticeModal" aria-hidden="true">
+  <div class="mobile-notice-box">
+    <button type="button" class="mobile-notice-close" id="mobileNoticeClose" aria-label="Close notification">&times;</button>
+    <div class="mobile-notice-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+        <line x1="8" y1="21" x2="16" y2="21"></line>
+        <line x1="12" y1="17" x2="12" y2="21"></line>
+      </svg>
+    </div>
+    <p class="mobile-notice-title">Desktop Recommended</p>
+    <p class="mobile-notice-text">For a better experience, open it as a Desktop Site.</p>
+    <button type="button" class="btn btn-primary btn-sm mobile-notice-btn" id="mobileNoticeDismiss">Got it</button>
+  </div>
+</div>
+<script src="js/data.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
