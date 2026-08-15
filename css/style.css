@@ -785,6 +785,13 @@ section{ position:relative; }
   line-height: 1.35;
   margin-bottom: 8px;
 }
+.edu-gpa {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #485563;
+  margin-bottom: 6px;
+}
 .edu-school{
   font-size: 13px;
   color: var(--muted);
