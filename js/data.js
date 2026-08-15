@@ -37,16 +37,19 @@ const EDUCATION = [
   {
     period: "2019",
     degree: "Secondary School Certificate (Science)",
+    gpa: "GPA: 5.00",
     school: "Monipur High School, Dhaka"
   },
   {
     period: "2021",
     degree: "Higher Secondary Certificate (Science)",
+    gpa: "GPA: 5.00",
     school: "Adamjee Cantonment College, Dhaka"
   },
   {
     period: "2028",
     degree: "B.Sc. in Computer Science and Engineering",
+    gpa: "Fifth Semester",
     school: "University of Asia Pacific"
   }
 ];
