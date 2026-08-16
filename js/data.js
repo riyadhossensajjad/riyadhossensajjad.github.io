@@ -124,7 +124,7 @@ const PORTFOLIO_ITEMS = [
     link: "#"
   },
   {
-    title: "Silver Award in the Duke of Edinburgh Award 2022",
+    title: "Bronze Award in the Duke of Edinburgh Award 2022",
     category: "award",
     image: "assets/badge-award.jpg",
     description: "The Duke of Edinburgh's International Award is a global youth development program; it challenges participants to set personal goals in community service, physical fitness, skill building, and outdoor expeditions.",
