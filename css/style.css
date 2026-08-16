@@ -208,26 +208,37 @@ section{ position:relative; }
   font-size: 13px;
   color: var(--gold);
 }
-.nav-links{
+.nav-links {
   position: relative;
-  display:flex;
-  align-items:center;
+  display: flex;
+  align-items: center;
   gap: 4px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
 }
 .nav-links li{
   position: relative;
   z-index: 2;
 }
-.nav-links a{
+.nav-links a {
   font-family: 'Montserrat', sans-serif;
   font-size: 13.5px;
   font-weight: 600;
   letter-spacing: .03em;
   color: rgba(255, 255, 255, 0.7);
   display: inline-block;
-  padding: 8px 18px;
-  border-radius: var(--radius-pill);
+  padding: 10px 22px;
+  border-radius: 9999px;
   transition: color .3s var(--ease);
+  
+  /* Standard cross-browser prevention for drag and text selection */
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .nav-links a:hover{
   color: #ffffff;
@@ -235,6 +246,7 @@ section{ position:relative; }
 .nav-links a.active{
   color: #ffffff;
 }
+/* Update the nav-indicator styles in css/style.css */
 .nav-indicator {
   position: absolute;
   z-index: 1;
@@ -242,23 +254,41 @@ section{ position:relative; }
   bottom: 0;
   left: 0;
   width: 0;
-  border-radius: var(--radius-pill);
-  pointer-events: none;
+  border-radius: 9999px;
   opacity: 0;
+  pointer-events: none;
 
-  /* Golden dark gradient styling */
+  /* Default Solid Gradient */
   background-image: linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
   background-size: 180% 180%;
   background-position: 0% 0%;
   border: 1px solid rgba(255, 255, 255, 0.12);
+  will-change: transform, width, backdrop-filter;
 
   transition: 
     transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
     width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
     opacity 0.3s var(--ease),
-    background-position 0.5s ease;
+    background 0.3s ease,
+    backdrop-filter 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
+.nav-indicator.is-dragging {
+  transition: none !important; /* Instant response during drag movement */
+  
+  /* Translucent frosted glass look */
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  
+  /* Light refraction rim & fluid glow */
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 8px 24px -4px rgba(0, 0, 0, 0.35);
+}
 /* Shifts the gradient on nav hover */
 .nav-wrap:hover .nav-indicator {
   background-position: 100% 60%;
@@ -837,35 +867,49 @@ section{ position:relative; }
    ============================================================ */
 .skills{ background: var(--paper-dim); }
 .skills-tabs {
-  position: relative;
-  display: flex;             /* Changed to flex for proper centering */
-  justify-content: center;   /* Centers the buttons */
-  width: fit-content;        /* Keeps width wrapped tight to buttons */
-  margin: 0 auto 44px auto;  /* Centers container horizontally & keeps bottom spacing */
-  gap: 8px;
-  padding: 0;                /* Removed container inner padding */
-  background: transparent !important; /* Removed white container background */
-  border-radius: var(--radius-pill);
-  box-shadow: none;          /* Removed the surrounding border/shadow */
+  position: relative; /*[cite: 2]*/
+  display: flex; /*[cite: 2]*/
+  justify-content: center; /*[cite: 2]*/
+  width: fit-content; /*[cite: 2]*/
+  margin: 0 auto 44px auto; /*[cite: 2]*/
+  gap: 8px; /*[cite: 2]*/
+  padding: 0; /*[cite: 2]*/
+  background: transparent !important; /*[cite: 2]*/
+  border-radius: 9999px; /*[cite: 2]*/
+  box-shadow: none; /*[cite: 2]*/
+
+  /* Touch & drag gesture support */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
 }
 .skills-tab {
-  position: relative;
-  z-index: 2;
-  padding: 11px 26px;
-  border-radius: var(--radius-pill);
-  border: none;
-  background: transparent !important;
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  font-size: 13px;
-  letter-spacing: .03em;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.3s var(--ease);
+  position: relative; /*[cite: 2]*/
+  z-index: 2; /*[cite: 2]*/
+  padding: 12px 28px;
+  border-radius: 9999px;
+  border: none; /*[cite: 2]*/
+  background: transparent !important; /*[cite: 2]*/
+  font-family: 'Montserrat', sans-serif; /*[cite: 2]*/
+  font-weight: 600; /*[cite: 2]*/
+  font-size: 13px; /*[cite: 2]*/
+  letter-spacing: .03em; /*[cite: 2]*/
+  color: var(--muted); /*[cite: 2]*/
+  cursor: pointer; /*[cite: 2]*/
+  transition: color 0.3s var(--ease); /*[cite: 2]*/
+
+  /* Prevent browser text/link dragging */
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .skills-tab.active {
-  color: #ffffff;
+  color: #ffffff; /*[cite: 2]*/
 }
+
 .skills-indicator {
   position: absolute;
   z-index: 1;
@@ -873,13 +917,31 @@ section{ position:relative; }
   bottom: 0;
   left: 0;
   width: 0;
-  background: linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
-  border-radius: var(--radius-pill);
+  background-image: linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   pointer-events: none;
-  
+  will-change: transform, width, backdrop-filter;
+
   transition: 
     transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
-    width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1);
+    width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
+    opacity 0.3s var(--ease),
+    background 0.3s ease,
+    backdrop-filter 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.skills-indicator.is-dragging {
+  transition: none !important;
+  background: rgba(38, 38, 38, 0.25) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 8px 24px -4px rgba(0, 0, 0, 0.25);
 }
 .skills-indicator.stretching {
   transition: 
@@ -1070,38 +1132,52 @@ section{ position:relative; }
    ============================================================ */
 .portfolio{ background: var(--paper); }
 .filter-row {
-  position: relative;
-  display: flex;
-  justify-content: center;         /* Centers the buttons inside */
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  margin: 0 auto 46px auto;        /* Centers the entire filter container */
-  background: transparent;
-  border-radius: var(--radius-pill);
+  position: relative; /*[cite: 2]*/
+  display: flex; /*[cite: 2]*/
+  justify-content: center; /*[cite: 2]*/
+  flex-wrap: wrap; /*[cite: 2]*/
+  align-items: center; /*[cite: 2]*/
+  gap: 8px; /*[cite: 2]*/
+  width: fit-content; /*[cite: 2]*/
+  margin: 0 auto 46px auto; /*[cite: 2]*/
+  background: transparent; /*[cite: 2]*/
+  border-radius: 9999px;
+
+  /* Touch & drag gesture support */
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
 }
+
 .filter-btn {
-  position: relative;
-  z-index: 2;
-  padding: 10px 22px;
-  border-radius: var(--radius-pill);
-  border: none;                     /* Removes static border outline */
-  background: transparent !important;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
-  font-weight: 600;                 /* Bold text matching skills tab */
-  letter-spacing: .03em;
-  color: var(--muted);
-  cursor: pointer;
-  transition: color 0.3s var(--ease);
+  position: relative; /*[cite: 2]*/
+  z-index: 2; /*[cite: 2]*/
+  padding: 11px 24px;
+  border-radius: 9999px;
+  border: none; /*[cite: 2]*/
+  background: transparent !important; /*[cite: 2]*/
+  font-family: 'Montserrat', sans-serif; /*[cite: 2]*/
+  font-size: 13px; /*[cite: 2]*/
+  font-weight: 600; /*[cite: 2]*/
+  letter-spacing: .03em; /*[cite: 2]*/
+  color: var(--muted); /*[cite: 2]*/
+  cursor: pointer; /*[cite: 2]*/
+  transition: color 0.3s var(--ease); /*[cite: 2]*/
+
+  /* Prevent browser text/button dragging */
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .filter-btn:hover {
-  color: rgb(38, 38, 38);
+  color: rgb(38, 38, 38); /*[cite: 2]*/
 }
 
 .filter-btn.active {
-  color: #ffffff;                   /* Active text becomes white */
+  color: #ffffff; /*[cite: 2]*/
 }
 .portfolio-indicator {
   position: absolute;
@@ -1110,11 +1186,11 @@ section{ position:relative; }
   bottom: 0;
   left: 0;
   width: 0;
-  border-radius: var(--radius-pill);
+  border-radius: 9999px;
   pointer-events: none;
   opacity: 0;
+  will-change: transform, width, backdrop-filter;
 
-  /* Exact gradient and subtle border from .nav-indicator */
   background-image: linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
   background-size: 180% 180%;
   background-position: 0% 0%;
@@ -1124,7 +1200,22 @@ section{ position:relative; }
     transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
     width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
     opacity 0.3s var(--ease),
-    background-position 0.5s ease;
+    background-position 0.5s ease,
+    background 0.3s ease,
+    backdrop-filter 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.portfolio-indicator.is-dragging {
+  transition: none !important;
+  background: rgba(38, 38, 38, 0.25) !important;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 8px 24px -4px rgba(0, 0, 0, 0.25);
 }
 .filter-row:hover .portfolio-indicator {
   background-position: 100% 60%;
@@ -1222,23 +1313,7 @@ section{ position:relative; }
   color: var(--muted); /*[cite: 6] */
   margin-bottom: 16px; /*[cite: 6] */
 }
-.p-link {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-  background: transparent;
-  border: 1.5px solid rgb(38, 38, 38);
-  border-radius: var(--radius-pill);
-  padding: 8px 18px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: auto;
-  cursor: pointer;
-  width: fit-content;
-  transition: all 0.3s var(--ease);
-}
+
 .p-link:hover {
   background: rgb(38, 38, 38);
   color: #ffffff;
@@ -1258,14 +1333,38 @@ section{ position:relative; }
 /* ============================================================
    FROSTED GLASS DETAILS MODAL (Button Origin App Expansion)
    ============================================================ */
-/* Active button hidden state */
-.p-link.button-hidden {
-  opacity: 0 !important;
-  pointer-events: none;
-  transform: scale(0.92);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+
+/* 1. View details button shrinks and vanishes */
+.p-link {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid rgb(38, 38, 38);
+  border-radius: var(--radius-pill);
+  padding: 8px 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  cursor: pointer;
+  width: fit-content;
+  will-change: transform, opacity;
+  transition: 
+    transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.25s ease,
+    background 0.3s var(--ease),
+    color 0.3s var(--ease);
 }
 
+.p-link.button-hidden {
+  opacity: 0 !important;
+  transform: scale(0.65) !important;
+  pointer-events: none !important;
+}
+
+/* 2. Backdrop fade */
 .p-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1274,16 +1373,16 @@ section{ position:relative; }
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   transition: 
-    opacity 0.4s cubic-bezier(0.32, 0.72, 0, 1),
-    visibility 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+    opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0.38s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .p-modal-backdrop.open {
@@ -1292,17 +1391,34 @@ section{ position:relative; }
   pointer-events: auto;
 }
 
-/* The expanding frosted popup card */
+/* 3. The expanding modal card */
 .p-modal-content {
   position: relative;
   width: 100%;
   max-width: 540px;
-  background: rgba(25, 25, 25, 0.5);
-  border-radius: var(--radius-lg);
   padding: 36px 32px;
   color: #ffffff;
+  background: transparent;
 
-  /* Blur & refraction */
+  /* Closed state at button position */
+  transform: translate3d(var(--origin-x, 0px), var(--origin-y, 0px), 0) scale(var(--origin-scale, 0.2));
+  opacity: 0;
+  will-change: transform, opacity;
+
+  transition: 
+    transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+/* 4. Frosted Glass Shell: stretches left/right independently */
+.p-modal-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--radius-lg);
+  background: rgba(25, 25, 25, 0.65);
+
+  /* Frosted Glass */
   backdrop-filter: blur(24px) saturate(190%);
   -webkit-backdrop-filter: blur(24px) saturate(190%);
 
@@ -1315,18 +1431,109 @@ section{ position:relative; }
     inset 0 1px 1px rgba(255, 255, 255, 0.3),
     0 24px 48px rgba(0, 0, 0, 0.5);
 
-  /* Origin offsets applied via CSS variables dynamically */
-  transform: translate(var(--origin-x, 0px), var(--origin-y, 0px)) scale(var(--origin-scale, 0.15));
-  opacity: 0;
-  will-change: transform, opacity;
-  transition: 
-    transform 0.48s cubic-bezier(0.16, 1, 0.3, 1), /* High-fidelity expansion curve */
-    opacity 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  transform-origin: center center;
+  will-change: transform;
 }
 
+/* 1. Modal box expands and stretches horizontally */
 .p-modal-backdrop.open .p-modal-content {
-  transform: translate(0px, 0px) scale(1);
+  animation: modalCenterEntrance 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+/* Liquid horizontal expansion applied only to the background shell */
+.p-modal-backdrop.open .p-modal-content::before {
+  animation: liquidShellStretch 0.68s cubic-bezier(0.25, 1, 0.35, 1) forwards;
+}
+
+@keyframes modalCenterEntrance {
+  0% {
+    transform: translate3d(var(--origin-x, 0px), var(--origin-y, 0px), 0) scale(var(--origin-scale, 0.2));
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes liquidShellStretch {
+  0% {
+    transform: scale(0.85, 0.85);
+  }
+  48% {
+    /* 20% horizontal stretch with a visible 5% vertical squeeze */
+    transform: scale(1.2, 0.95);
+  }
+  74% {
+    /* Fluid vertical spring rebound */
+    transform: scale(0.985, 1.04);
+  }
+  90% {
+    /* Micro-settle */
+    transform: scale(1.004, 0.998);
+  }
+  100% {
+    /* Final resting proportions */
+    transform: scale(1, 1);
+  }
+}
+/* 5. Text & close button: pure opacity/position, zero scaling distortion */
+.p-modal-body,
+.p-modal-close {
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(4px);
+  will-change: opacity, transform;
+}
+
+/* Fades and settles into place immediately alongside the expanding box */
+.p-modal-backdrop.open .p-modal-body,
+.p-modal-backdrop.open .p-modal-close {
   opacity: 1;
+  transform: translateY(0);
+  transition: 
+    opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s,
+    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
+}
+
+@keyframes counterScaleBody {
+  0% {
+    transform: scale(calc(1 / var(--origin-scale, 0.18)), calc(1 / var(--origin-scale, 0.18)));
+    opacity: 0;
+  }
+  55% {
+    /* Exact inverse of 1.14x: 1 / 1.14 = 0.877 */
+    transform: scale(0.877, 1);
+    opacity: 1;
+  }
+  78% {
+    /* Exact inverse of 0.98x: 1 / 0.98 = 1.02 */
+    transform: scale(1.02, 1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1, 1);
+    opacity: 1;
+  }
+}
+
+@keyframes counterScaleClose {
+  0% {
+    transform: scale(calc(1 / var(--origin-scale, 0.18)), calc(1 / var(--origin-scale, 0.18)));
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.877, 1);
+    opacity: 1;
+  }
+  78% {
+    transform: scale(1.02, 1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1, 1);
+    opacity: 1;
+  }
 }
 
 .p-modal-close {
@@ -1808,7 +2015,7 @@ main > section:nth-of-type(2) {
 }
 
 /* ============================================================
-   MOBILE DESKTOP NOTICE MODAL (Frosted Blur)
+   MOBILE DESKTOP NOTICE MODAL (Liquid Shell Stretch & Squeeze)
    ============================================================ */
 .mobile-notice-backdrop {
   position: fixed;
@@ -1819,6 +2026,9 @@ main > section:nth-of-type(2) {
   justify-content: center;
   padding: 24px;
   background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1831,17 +2041,32 @@ main > section:nth-of-type(2) {
   pointer-events: auto;
 }
 
+/* 1. Modal box shell container */
 .mobile-notice-box {
   position: relative;
   width: 100%;
   max-width: 380px;
-  background: rgba(30, 30, 30, 0.65);
-  border-radius: var(--radius-lg);
   padding: 32px 24px;
   text-align: center;
   color: #ffffff;
+  background: transparent;
 
-  /* Frosted glass blur & highlights matching existing popups */
+  transform: scale(0.85);
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: transform 0.35s var(--ease), opacity 0.35s var(--ease);
+}
+
+/* 2. Independent Frosted Background Shell that stretches without text distortion */
+.mobile-notice-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--radius-lg);
+  background: rgba(30, 30, 30, 0.65);
+
+  /* Frosted glass blur & rim */
   backdrop-filter: blur(24px) saturate(190%);
   -webkit-backdrop-filter: blur(24px) saturate(190%);
   border-top: 1px solid rgba(255, 255, 255, 0.4);
@@ -1850,12 +2075,75 @@ main > section:nth-of-type(2) {
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 20px 40px rgba(0, 0, 0, 0.6);
 
-  transform: scale(0.9);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center center;
+  will-change: transform;
 }
 
+/* 3. Animations when opened */
 .mobile-notice-backdrop.open .mobile-notice-box {
-  transform: scale(1);
+  animation: mobileNoticeEntrance 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.mobile-notice-backdrop.open .mobile-notice-box::before {
+  animation: liquidMobileNoticeStretch 0.68s cubic-bezier(0.25, 1, 0.35, 1) forwards;
+}
+
+@keyframes mobileNoticeEntrance {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes liquidMobileNoticeStretch {
+  0% {
+    transform: scale(0.85, 0.85);
+  }
+  48% {
+    /* Exact same 20% stretch with 5% vertical squeeze */
+    transform: scale(1.2, 0.95);
+  }
+  74% {
+    /* Fluid vertical spring rebound */
+    transform: scale(0.985, 1.04);
+  }
+  90% {
+    /* Micro-settle */
+    transform: scale(1.004, 0.998);
+  }
+  100% {
+    /* Final resting proportions */
+    transform: scale(1, 1);
+  }
+}
+
+/* 4. Text, Icon, Close & Button (Clean, zero distortion, smooth fade-in) */
+.mobile-notice-icon,
+.mobile-notice-title,
+.mobile-notice-text,
+.mobile-notice-btn,
+.mobile-notice-close {
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(4px);
+  will-change: opacity, transform;
+}
+
+.mobile-notice-backdrop.open .mobile-notice-icon,
+.mobile-notice-backdrop.open .mobile-notice-title,
+.mobile-notice-backdrop.open .mobile-notice-text,
+.mobile-notice-backdrop.open .mobile-notice-btn,
+.mobile-notice-backdrop.open .mobile-notice-close {
+  opacity: 1;
+  transform: translateY(0);
+  transition: 
+    opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s,
+    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
 }
 
 .mobile-notice-close {
@@ -1885,7 +2173,7 @@ main > section:nth-of-type(2) {
   height: 52px;
   margin: 0 auto 16px;
   border-radius: 50%;
-  background-image: #485563;
+  background: #485563;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 4px 14px -4px rgba(0, 0, 0, 0.5);
   display: flex;
@@ -1928,6 +2216,7 @@ main > section:nth-of-type(2) {
   border-radius: var(--radius-pill);
   transition: transform 0.25s ease, background-position 0.4s ease, box-shadow 0.25s ease;
 }
+
 .mobile-notice-btn:hover {
   background-position: 100% 60%;
   transform: translateY(-2px);
