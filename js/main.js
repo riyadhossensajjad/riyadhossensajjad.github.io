@@ -127,53 +127,25 @@
   };
 }
 
-  // 2. Position Indicator via Element Geometry
-  function updateNavIndicator(targetAnchor, animateFluid = true) {
-    if (!targetAnchor || !navIndicator || !navLinks) {
-      if (navIndicator) navIndicator.style.opacity = "0";
-      return;
-    }
+let glassTimer = null;
 
-    const isMobile = window.innerWidth <= 900;
-    const { left, top, width, height } = getAnchorOffsets(targetAnchor);
+function updateNavIndicator(targetAnchor, animateFluid = true) {
+  if (!targetAnchor || !navIndicator || !navLinks) return;
 
-    navIndicator.style.opacity = "1";
-    navIndicator.style.width = `${width}px`;
-    navIndicator.style.height = `${height}px`;
+  const { left, top, width, height } = getAnchorOffsets(targetAnchor);
+  navIndicator.style.opacity = "1";
 
-    navIndicator.style.transition = `
-      transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
-      width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
-      height 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
-      opacity 0.3s var(--ease),
-      background 0.3s ease,
-      backdrop-filter 0.3s ease,
-      border-color 0.3s ease,
-      box-shadow 0.3s ease
-    `;
-
-    if (isMobile) {
-      if (animateFluid) {
-        navIndicator.style.height = `${height * 1.18}px`;
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
-        setTimeout(() => {
-          navIndicator.style.height = `${height}px`;
-        }, 180);
-      } else {
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
-      }
-    } else {
-      if (animateFluid) {
-        navIndicator.style.width = `${width * 1.25}px`;
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
-        setTimeout(() => {
-          navIndicator.style.width = `${width}px`;
-        }, 180);
-      } else {
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
-      }
-    }
+  if (animateFluid) {
+    navIndicator.classList.add("is-dragging");
+    clearTimeout(glassTimer);
+    glassTimer = setTimeout(() => navIndicator.classList.remove("is-dragging"), 450);
   }
+
+  // Smooth direct slide to target coordinates in one step
+  navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+  navIndicator.style.width = `${width}px`;
+  navIndicator.style.height = `${height}px`;
+}
 
   // 3. Momentum overshoot on Drag Release
   function releaseWithForwardOvershoot(targetAnchor, direction) {
@@ -295,6 +267,7 @@
         isDragging = true;
         dragThresholdPassed = true;
         navIndicator.classList.add("is-dragging");
+        navIndicator.classList.add("is-pointer-dragging"); // <-- ADD THIS
       }
 
       if (isDragging) {
@@ -352,7 +325,14 @@
 
       if (isDragging) {
         isDragging = false;
-        navIndicator.classList.remove("is-dragging");
+        
+        // 1. Re-enable CSS transitions immediately on finger release
+        navIndicator.classList.remove("is-pointer-dragging");
+
+        // 2. Remove the glassy effect after momentum completes
+        setTimeout(() => {
+          navIndicator.classList.remove("is-dragging");
+        }, 400);
 
         const isMobile = window.innerWidth <= 900;
         const targetAnchor = currentTargetAnchor || document.querySelector('.nav-links a.active') || navAnchors[0];
@@ -400,12 +380,27 @@
     });
   });
 
-  // --- ScrollSpy Observer ---
+// --- ScrollSpy Observer ---
   const sections = ["home", "about", "education", "skills", "portfolio", "testimonials", "contact"]
     .map(id => document.getElementById(id)).filter(Boolean);
 
+  function checkBottomScroll() {
+    // If scrolled to the very bottom of the document, activate the last nav link (Contact)
+    if ((window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 60)) {
+      const lastAnchor = navAnchors[navAnchors.length - 1];
+      if (lastAnchor && !lastAnchor.classList.contains("active")) {
+        navAnchors.forEach(a => a.classList.remove("active"));
+        lastAnchor.classList.add("active");
+        updateNavIndicator(lastAnchor, false);
+      }
+      return true;
+    }
+    return false;
+  }
+
   const navObserver = new IntersectionObserver((entries) => {
     if (isClickScrolling || isDragging || isPointerDown) return;
+    if (checkBottomScroll()) return;
 
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -418,20 +413,14 @@
         }
       }
     });
-  }, { rootMargin: "-45% 0px -50% 0px" });
+  }, { rootMargin: "-30% 0px -40% 0px", threshold: 0.1 });
 
   sections.forEach(s => navObserver.observe(s));
-
-  // Initialize
-  const initialNavActive = document.querySelector('.nav-links a.active') || navAnchors[0];
-  if (initialNavActive) {
-    setTimeout(() => updateNavIndicator(initialNavActive, false), 80);
-  }
-
-  window.addEventListener('resize', () => {
-    const active = document.querySelector('.nav-links a.active');
-    if (active) updateNavIndicator(active, false);
-  });
+  window.addEventListener("scroll", () => {
+    if (!isClickScrolling && !isDragging && !isPointerDown) {
+      checkBottomScroll();
+    }
+  }, { passive: true });
   /* ============================================================
      HERO — exact pixel-width sliding text animation
      ============================================================ */
@@ -570,32 +559,26 @@
     tab.addEventListener("dragstart", (e) => e.preventDefault());
   });
 
-  function updateIndicator(targetTab, animateFluid = true) {
-    if (!targetTab || !indicator || !tabsContainer) return; /*[cite: 4]*/
+  let skillsGlassTimer = null;
 
-    const containerRect = tabsContainer.getBoundingClientRect(); /*[cite: 4]*/
-    const tabRect = targetTab.getBoundingClientRect(); /*[cite: 4]*/
+function updateIndicator(targetTab, animateFluid = true) {
+  if (!targetTab || !indicator || !tabsContainer) return;
 
-    const leftOffset = tabRect.left - containerRect.left; /*[cite: 4]*/
-    const tabWidth = tabRect.width; /*[cite: 4]*/
+  const containerRect = tabsContainer.getBoundingClientRect();
+  const tabRect = targetTab.getBoundingClientRect();
+  const leftOffset = tabRect.left - containerRect.left;
+  const tabWidth = tabRect.width;
 
-    indicator.style.transition = `
-      transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
-      width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1)
-    `;
-
-    if (animateFluid) {
-      indicator.style.width = `${tabWidth * 1.25}px`; /*[cite: 4]*/
-      indicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
-
-      setTimeout(() => {
-        indicator.style.width = `${tabWidth}px`; /*[cite: 4]*/
-      }, 180); /*[cite: 4]*/
-    } else {
-      indicator.style.width = `${tabWidth}px`; /*[cite: 4]*/
-      indicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
-    }
+  if (animateFluid) {
+    indicator.classList.add("is-dragging");
+    clearTimeout(skillsGlassTimer);
+    skillsGlassTimer = setTimeout(() => indicator.classList.remove("is-dragging"), 450);
   }
+
+  // Smooth direct slide to tab coordinates
+  indicator.style.transform = `translateX(${leftOffset}px)`;
+  indicator.style.width = `${tabWidth}px`;
+}
 
   // Forward momentum surge and snap on drag release
   function releaseSkillsWithOvershoot(targetTab, direction) {
@@ -834,10 +817,6 @@
       </div>`).join(""); /*[cite: 4]*/
   }
   renderPortfolio(); /*[cite: 4]*/
-
-  /* ============================================================
-     PORTFOLIO MODAL — button origin pop expansion
-     ============================================================ */
   /* ============================================================
      PORTFOLIO MODAL — liquid box expansion & delayed content reveal
      ============================================================ */
@@ -951,39 +930,31 @@
     btn.addEventListener("dragstart", (e) => e.preventDefault());
   });
 
-  function updatePortfolioIndicator(targetBtn, animateFluid = true) {
-    if (!targetBtn || !portIndicator || !filterRow) return; /*[cite: 4]*/
+  let portGlassTimer = null;
 
-    const rowRect = filterRow.getBoundingClientRect(); /*[cite: 4]*/
-    const btnRect = targetBtn.getBoundingClientRect(); /*[cite: 4]*/
+function updatePortfolioIndicator(targetBtn, animateFluid = true) {
+  if (!targetBtn || !portIndicator || !filterRow) return;
 
-    const leftOffset = btnRect.left - rowRect.left; /*[cite: 4]*/
-    const topOffset = btnRect.top - rowRect.top; /*[cite: 4]*/
-    const btnWidth = btnRect.width; /*[cite: 4]*/
+  const rowRect = filterRow.getBoundingClientRect();
+  const btnRect = targetBtn.getBoundingClientRect();
+  const leftOffset = btnRect.left - rowRect.left;
+  const topOffset = btnRect.top - rowRect.top;
+  const btnWidth = btnRect.width;
 
-    portIndicator.style.opacity = "1"; /*[cite: 4]*/
-    portIndicator.style.top = `${topOffset}px`; /*[cite: 4]*/
-    portIndicator.style.height = `${btnRect.height}px`; /*[cite: 4]*/
+  portIndicator.style.opacity = "1";
+  portIndicator.style.top = `${topOffset}px`;
+  portIndicator.style.height = `${btnRect.height}px`;
 
-    portIndicator.style.transition = `
-      transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
-      width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
-      opacity 0.3s var(--ease),
-      background-position 0.5s ease
-    `;
-
-    if (animateFluid) {
-      portIndicator.style.width = `${btnWidth * 1.2}px`; /*[cite: 4]*/
-      portIndicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
-
-      setTimeout(() => {
-        portIndicator.style.width = `${btnWidth}px`; /*[cite: 4]*/
-      }, 180); /*[cite: 4]*/
-    } else {
-      portIndicator.style.width = `${btnWidth}px`; /*[cite: 4]*/
-      portIndicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
-    }
+  if (animateFluid) {
+    portIndicator.classList.add("is-dragging");
+    clearTimeout(portGlassTimer);
+    portGlassTimer = setTimeout(() => portIndicator.classList.remove("is-dragging"), 450);
   }
+
+  // Smooth direct slide to button coordinates
+  portIndicator.style.transform = `translateX(${leftOffset}px)`;
+  portIndicator.style.width = `${btnWidth}px`;
+}
 
   // Momentum forward overshoot & snap on drag release
   function releasePortfolioWithOvershoot(targetBtn, direction) {
