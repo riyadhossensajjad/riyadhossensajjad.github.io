@@ -4,130 +4,239 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const isMobile = window.innerWidth < 720;
 
-  /* ============================================================
+/* ============================================================
      NAVBAR — smooth indicator with liquid drag, release momentum & click-lock
      ============================================================ */
-  const navbar = document.getElementById("navbar"); /*[cite: 4]*/
-  const navToggle = document.getElementById("navToggle"); /*[cite: 4]*/
-  const navLinks = document.getElementById("navLinks"); /*[cite: 4]*/
-  const navIndicator = document.getElementById("navIndicator"); /*[cite: 4]*/
-  const navAnchors = Array.from(document.querySelectorAll('[data-nav]')); /*[cite: 4]*/
+  const navbar = document.getElementById("navbar");
+  const navToggle = document.getElementById("navToggle");
+  const navLinks = document.getElementById("navLinks");
+  const navIndicator = document.getElementById("navIndicator");
+  const navAnchors = Array.from(document.querySelectorAll('[data-nav]'));
 
-  let isClickScrolling = false; /*[cite: 4]*/
-  let clickScrollTimer = null; /*[cite: 4]*/
+  let isClickScrolling = false;
+  let clickScrollTimer = null;
   let isPointerDown = false;
   let isDragging = false;
   let startX = 0;
+  let startY = 0;
   let initialLeft = 0;
+  let initialTop = 0;
   let initialWidth = 0;
+  let initialHeight = 0;
   let currentTargetAnchor = null;
   let dragThresholdPassed = false;
-  let dragDirection = 0; // Tracks +1 for right, -1 for left
+  let dragDirection = 0;
 
   function onScroll() {
-    if (navbar) navbar.classList.toggle("scrolled", window.scrollY > 40); /*[cite: 4]*/
+    if (navbar) navbar.classList.toggle("scrolled", window.scrollY > 40);
   }
-  onScroll(); /*[cite: 4]*/
-  window.addEventListener("scroll", onScroll, { passive: true }); /*[cite: 4]*/
+  onScroll();
+  window.addEventListener("scroll", onScroll, { passive: true });
 
-  if (navToggle && navLinks) {
-    navToggle.addEventListener("click", () => {
-      const open = navLinks.classList.toggle("open"); /*[cite: 4]*/
-      navToggle.classList.toggle("open", open); /*[cite: 4]*/
-      navToggle.setAttribute("aria-expanded", String(open)); /*[cite: 4]*/
+  // 1. Mobile Menu Open & Close
+  function openMobileNav() {
+    if (!navToggle || !navLinks) return;
+
+    const toggleRect = navToggle.getBoundingClientRect();
+    const toggleCenterX = toggleRect.left + toggleRect.width / 2;
+    const toggleCenterY = toggleRect.top + toggleRect.height / 2;
+
+    const navCenterX = window.innerWidth / 2;
+    const navCenterY = 74 + (navLinks.offsetHeight || 300) / 2;
+
+    const deltaX = toggleCenterX - navCenterX;
+    const deltaY = toggleCenterY - navCenterY;
+
+    navLinks.style.setProperty("--origin-x", `${deltaX}px`);
+    navLinks.style.setProperty("--origin-y", `${deltaY}px`);
+    navLinks.style.setProperty("--origin-scale", `0.18`);
+
+    navToggle.classList.add("button-hidden");
+    navToggle.setAttribute("aria-expanded", "true");
+
+    requestAnimationFrame(() => {
+      navLinks.classList.add("open");
+      const activeLink = document.querySelector('.nav-links a.active') || navAnchors[0];
+      if (activeLink) {
+        setTimeout(() => updateNavIndicator(activeLink, false), 80);
+      }
     });
   }
 
-  // Prevent default HTML5 link ghosting
+  function closeMobileNav() {
+    if (!navLinks) return;
+    navLinks.classList.remove("open");
+
+    setTimeout(() => {
+      if (navToggle) {
+        navToggle.classList.remove("button-hidden");
+        navToggle.setAttribute("aria-expanded", "false");
+      }
+    }, 200);
+  }
+
+  if (navToggle && navLinks) {
+    navToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (navLinks.classList.contains("open")) {
+        closeMobileNav();
+      } else {
+        openMobileNav();
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        window.innerWidth <= 900 &&
+        navLinks.classList.contains("open") &&
+        !navLinks.contains(e.target) &&
+        !navToggle.contains(e.target)
+      ) {
+        closeMobileNav();
+      }
+    });
+  }
+
   navAnchors.forEach(a => {
     a.setAttribute("draggable", "false");
     a.addEventListener("dragstart", (e) => e.preventDefault());
   });
 
-  // Standard click liquid spring animation
+  // Relative geometry helper (accurate for both desktop & mobile)
+  function getAnchorOffsets(anchor) {
+  if (!anchor || !navLinks) return { left: 0, top: 0, width: 0, height: 0 };
+  const isMobile = window.innerWidth <= 900;
+  
+  if (isMobile) {
+    const li = anchor.parentElement;
+    return {
+      left: li.offsetLeft,
+      top: li.offsetTop,
+      width: li.offsetWidth,
+      height: li.offsetHeight
+    };
+  }
+
+  // Desktop: anchor's li is the direct child of navLinks
+  const li = anchor.closest('li') || anchor;
+  return {
+    left: li.offsetLeft + anchor.offsetLeft,
+    top: li.offsetTop + anchor.offsetTop,
+    width: anchor.offsetWidth,
+    height: anchor.offsetHeight
+  };
+}
+
+  // 2. Position Indicator via Element Geometry
   function updateNavIndicator(targetAnchor, animateFluid = true) {
-    if (!targetAnchor || !navIndicator || !navLinks || window.innerWidth <= 900) { /*[cite: 4]*/
-      if (navIndicator) navIndicator.style.opacity = "0"; /*[cite: 4]*/
-      return; /*[cite: 4]*/
+    if (!targetAnchor || !navIndicator || !navLinks) {
+      if (navIndicator) navIndicator.style.opacity = "0";
+      return;
     }
 
-    const containerRect = navLinks.getBoundingClientRect(); /*[cite: 4]*/
-    const anchorRect = targetAnchor.getBoundingClientRect(); /*[cite: 4]*/
+    const isMobile = window.innerWidth <= 900;
+    const { left, top, width, height } = getAnchorOffsets(targetAnchor);
 
-    const leftOffset = anchorRect.left - containerRect.left; /*[cite: 4]*/
-    const anchorWidth = anchorRect.width; /*[cite: 4]*/
+    navIndicator.style.opacity = "1";
+    navIndicator.style.width = `${width}px`;
+    navIndicator.style.height = `${height}px`;
 
-    navIndicator.style.opacity = "1"; /*[cite: 4]*/
+    navIndicator.style.transition = `
+      transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
+      width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
+      height 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
+      opacity 0.3s var(--ease),
+      background 0.3s ease,
+      backdrop-filter 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease
+    `;
 
-    if (animateFluid) {
-      navIndicator.style.width = `${anchorWidth * 1.25}px`;
-      navIndicator.style.transform = `translateX(${leftOffset}px)`;
-
-      setTimeout(() => {
-        navIndicator.style.width = `${anchorWidth}px`;
-      }, 180);
+    if (isMobile) {
+      if (animateFluid) {
+        navIndicator.style.height = `${height * 1.18}px`;
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        setTimeout(() => {
+          navIndicator.style.height = `${height}px`;
+        }, 180);
+      } else {
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+      }
     } else {
-      navIndicator.style.width = `${anchorWidth}px`; /*[cite: 4]*/
-      navIndicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
+      if (animateFluid) {
+        navIndicator.style.width = `${width * 1.25}px`;
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        setTimeout(() => {
+          navIndicator.style.width = `${width}px`;
+        }, 180);
+      } else {
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+      }
     }
   }
 
-  // Liquid Forward Overshoot on Drag Release
+  // 3. Momentum overshoot on Drag Release
   function releaseWithForwardOvershoot(targetAnchor, direction) {
     if (!targetAnchor || !navIndicator || !navLinks) return;
 
-    const containerRect = navLinks.getBoundingClientRect();
-    const anchorRect = targetAnchor.getBoundingClientRect();
-    const targetLeft = anchorRect.left - containerRect.left;
-    const targetWidth = anchorRect.width;
+    const isMobile = window.innerWidth <= 900;
+    const { left, top, width, height } = getAnchorOffsets(targetAnchor);
+    const stretchAmount = isMobile ? 18 : 26;
 
-    const stretchAmount = 26; // Forward liquid protrusion in px
-    const expandedWidth = targetWidth + stretchAmount;
-
-    // Apply fast spring transition for the release snap
     navIndicator.style.transition = `
       transform 0.26s cubic-bezier(0.25, 1, 0.5, 1),
       width 0.26s cubic-bezier(0.25, 1, 0.5, 1),
-      opacity 0.3s cubic-bezier(0.22, 0.68, 0, 1),
-      background-position 0.5s ease
+      height 0.26s cubic-bezier(0.25, 1, 0.5, 1),
+      opacity 0.3s var(--ease)
     `;
 
-    // Phase 1: Forward liquid surge in dragging direction
-    if (direction > 0) {
-      // Surges forward to the right
-      navIndicator.style.transform = `translateX(${targetLeft}px)`;
-      navIndicator.style.width = `${expandedWidth}px`;
-    } else if (direction < 0) {
-      // Surges forward to the left
-      navIndicator.style.transform = `translateX(${targetLeft - stretchAmount}px)`;
-      navIndicator.style.width = `${expandedWidth}px`;
+    if (isMobile) {
+      const expandedHeight = height + stretchAmount;
+      if (direction > 0) {
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.height = `${expandedHeight}px`;
+      } else if (direction < 0) {
+        navIndicator.style.transform = `translate(${left}px, ${top - stretchAmount}px)`;
+        navIndicator.style.height = `${expandedHeight}px`;
+      } else {
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.height = `${height}px`;
+      }
     } else {
-      navIndicator.style.transform = `translateX(${targetLeft}px)`;
-      navIndicator.style.width = `${targetWidth}px`;
+      const expandedWidth = width + stretchAmount;
+      if (direction > 0) {
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.width = `${expandedWidth}px`;
+      } else if (direction < 0) {
+        navIndicator.style.transform = `translate(${left - stretchAmount}px, ${top}px)`;
+        navIndicator.style.width = `${expandedWidth}px`;
+      } else {
+        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.width = `${width}px`;
+      }
     }
 
-    // Phase 2: Snap back smoothly to rest position
     setTimeout(() => {
       navIndicator.style.transition = `
         transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
         width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
-        opacity 0.3s cubic-bezier(0.22, 0.68, 0, 1),
-        background-position 0.5s ease
+        height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.3s var(--ease)
       `;
-      navIndicator.style.transform = `translateX(${targetLeft}px)`;
-      navIndicator.style.width = `${targetWidth}px`;
+      navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+      navIndicator.style.width = `${width}px`;
+      navIndicator.style.height = `${height}px`;
     }, 180);
   }
 
-  function getClosestAnchor(currentCenterX) {
-    const containerRect = navLinks.getBoundingClientRect();
+  function getClosestAnchor(currentCenter, isMobile) {
     let closest = navAnchors[0];
     let minDistance = Infinity;
 
     navAnchors.forEach(anchor => {
-      const rect = anchor.getBoundingClientRect();
-      const anchorCenterX = (rect.left - containerRect.left) + rect.width / 2;
-      const dist = Math.abs(currentCenterX - anchorCenterX);
+      const { left, top, width, height } = getAnchorOffsets(anchor);
+      const center = isMobile ? top + height / 2 : left + width / 2;
+      const dist = Math.abs(currentCenter - center);
       if (dist < minDistance) {
         minDistance = dist;
         closest = anchor;
@@ -150,73 +259,94 @@
     }
   }
 
-  // --- Drag & Liquid Slide Controller ---
+  // 4. Pointer Drag Engine (Desktop Horizontal & Mobile Vertical)
   if (navLinks && navIndicator) {
     navLinks.addEventListener("pointerdown", (e) => {
-      if (window.innerWidth <= 900 || e.button !== 0) return;
+      if (e.button !== 0) return;
+
+      const activeLink = document.querySelector('.nav-links a.active') || navAnchors[0];
+      const isMobile = window.innerWidth <= 900;
+      const offsets = getAnchorOffsets(activeLink);
 
       isPointerDown = true;
       isDragging = false;
       dragThresholdPassed = false;
       startX = e.clientX;
+      startY = e.clientY;
       dragDirection = 0;
 
-      const containerRect = navLinks.getBoundingClientRect();
-      const indicatorRect = navIndicator.getBoundingClientRect();
-      initialLeft = indicatorRect.left - containerRect.left;
-      initialWidth = indicatorRect.width;
+      initialLeft = offsets.left;
+      initialTop = offsets.top;
+      initialWidth = offsets.width;
+      initialHeight = offsets.height;
     });
 
     window.addEventListener("pointermove", (e) => {
-  if (!isPointerDown) return;
+      if (!isPointerDown) return;
 
-  const deltaX = e.clientX - startX;
-  dragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
+      const isMobile = window.innerWidth <= 900;
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
+      const mainDelta = isMobile ? deltaY : deltaX;
 
-  if (!isDragging && Math.abs(deltaX) > 6) {
-    isDragging = true;
-    dragThresholdPassed = true;
-    navIndicator.classList.add("is-dragging");
-  }
+      dragDirection = mainDelta > 0 ? 1 : mainDelta < 0 ? -1 : 0;
 
-  if (isDragging) {
-    e.preventDefault();
-    const containerRect = navLinks.getBoundingClientRect();
+      if (!isDragging && Math.abs(mainDelta) > 6) {
+        isDragging = true;
+        dragThresholdPassed = true;
+        navIndicator.classList.add("is-dragging");
+      }
 
-    // Fluid drag stretch
-    const stretchFactor = 0.38;
-    const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 45);
+      if (isDragging) {
+        e.preventDefault();
+        const containerRect = navLinks.getBoundingClientRect();
+        const stretchFactor = 0.38;
 
-    let newLeft = initialLeft;
-    let newWidth = initialWidth + stretch;
+        if (isMobile) {
+          const stretch = Math.min(Math.abs(deltaY) * stretchFactor, 32);
+          let newTop = deltaY > 0 ? initialTop + deltaY - stretch : initialTop + deltaY;
+          let newHeight = initialHeight + stretch;
 
-    if (deltaX > 0) {
-      newLeft = initialLeft + deltaX - stretch;
-    } else {
-      newLeft = initialLeft + deltaX;
-    }
+          const maxTop = containerRect.height - newHeight - 20;
+          newTop = Math.max(20, Math.min(newTop, maxTop));
+          const squeezeX = Math.max(0.92, 1 - (stretch / 200));
 
-    const maxLeft = containerRect.width - newWidth;
-    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+          navIndicator.style.width = `${initialWidth}px`;
+          navIndicator.style.height = `${newHeight}px`;
+          navIndicator.style.transform = `translate(${initialLeft}px, ${newTop}px) scaleX(${squeezeX})`;
 
-    // Dynamic liquid squeeze: stretches wider horizontally, compresses slightly vertically
-    const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
+          const currentCenterY = newTop + newHeight / 2;
+          const closest = getClosestAnchor(currentCenterY, true);
+          if (closest && closest !== currentTargetAnchor) {
+            currentTargetAnchor = closest;
+            navAnchors.forEach(a => a.classList.remove("active"));
+            closest.classList.add("active");
+          }
+        } else {
+          const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 45);
+          let newLeft = deltaX > 0 ? initialLeft + deltaX - stretch : initialLeft + deltaX;
+          let newWidth = initialWidth + stretch;
 
-    navIndicator.style.width = `${newWidth}px`;
-    navIndicator.style.transform = `translateX(${newLeft}px) scaleY(${liquidSqueeze})`;
+          const maxLeft = containerRect.width - newWidth;
+          newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+          const squeezeY = Math.max(0.88, 1 - (stretch / 200));
 
-    // Highlight matching link under the pill
-    const currentCenterX = newLeft + newWidth / 2;
-    const closest = getClosestAnchor(currentCenterX);
-    if (closest && closest !== currentTargetAnchor) {
-      currentTargetAnchor = closest;
-      navAnchors.forEach(a => a.classList.remove("active"));
-      closest.classList.add("active");
-    }
-  }
-});
+          navIndicator.style.width = `${newWidth}px`;
+          navIndicator.style.height = `${initialHeight}px`;
+          navIndicator.style.transform = `translate(${newLeft}px, ${initialTop}px) scaleY(${squeezeY})`;
 
-    window.addEventListener("pointerup", (e) => {
+          const currentCenterX = newLeft + newWidth / 2;
+          const closest = getClosestAnchor(currentCenterX, false);
+          if (closest && closest !== currentTargetAnchor) {
+            currentTargetAnchor = closest;
+            navAnchors.forEach(a => a.classList.remove("active"));
+            closest.classList.add("active");
+          }
+        }
+      }
+    });
+
+    window.addEventListener("pointerup", () => {
       if (!isPointerDown) return;
       isPointerDown = false;
 
@@ -224,10 +354,8 @@
         isDragging = false;
         navIndicator.classList.remove("is-dragging");
 
-        const containerRect = navLinks.getBoundingClientRect();
-        const indicatorRect = navIndicator.getBoundingClientRect();
-        const currentCenterX = (indicatorRect.left - containerRect.left) + indicatorRect.width / 2;
-        const targetAnchor = getClosestAnchor(currentCenterX);
+        const isMobile = window.innerWidth <= 900;
+        const targetAnchor = currentTargetAnchor || document.querySelector('.nav-links a.active') || navAnchors[0];
 
         if (targetAnchor) {
           isClickScrolling = true;
@@ -237,14 +365,17 @@
           }, 850);
 
           navigateTo(targetAnchor, true);
-          // Release forward surge + elastic rebound
           releaseWithForwardOvershoot(targetAnchor, dragDirection);
+
+          if (isMobile) {
+            setTimeout(closeMobileNav, 300);
+          }
         }
       }
     });
   }
 
-  // --- Click Navigation ---
+  // 5. Click Navigation
   navAnchors.forEach(link => {
     link.addEventListener("click", (e) => {
       e.preventDefault();
@@ -252,12 +383,6 @@
       if (dragThresholdPassed) {
         dragThresholdPassed = false;
         return;
-      }
-
-      if (navLinks) navLinks.classList.remove("open");
-      if (navToggle) {
-        navToggle.classList.remove("open");
-        navToggle.setAttribute("aria-expanded", "false");
       }
 
       isClickScrolling = true;
@@ -268,42 +393,45 @@
 
       navigateTo(link, true);
       updateNavIndicator(link, true);
+
+      if (window.innerWidth <= 900) {
+        setTimeout(closeMobileNav, 280);
+      }
     });
   });
 
   // --- ScrollSpy Observer ---
-  const sections = ["home", "about", "education", "skills", "portfolio", "testimonials", "contact"] /*[cite: 4]*/
-    .map(id => document.getElementById(id)).filter(Boolean); /*[cite: 4]*/
+  const sections = ["home", "about", "education", "skills", "portfolio", "testimonials", "contact"]
+    .map(id => document.getElementById(id)).filter(Boolean);
 
   const navObserver = new IntersectionObserver((entries) => {
     if (isClickScrolling || isDragging || isPointerDown) return;
 
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const id = entry.target.id; /*[cite: 4]*/
-        const matchingLink = navAnchors.find(a => a.getAttribute("href") === "#" + id); /*[cite: 4]*/
+        const id = entry.target.id;
+        const matchingLink = navAnchors.find(a => a.getAttribute("href") === "#" + id);
         if (matchingLink) {
-          navAnchors.forEach(a => a.classList.remove("active")); /*[cite: 4]*/
-          matchingLink.classList.add("active"); /*[cite: 4]*/
+          navAnchors.forEach(a => a.classList.remove("active"));
+          matchingLink.classList.add("active");
           updateNavIndicator(matchingLink, false);
         }
       }
     });
-  }, { rootMargin: "-45% 0px -50% 0px" }); /*[cite: 4]*/
+  }, { rootMargin: "-45% 0px -50% 0px" });
 
-  sections.forEach(s => navObserver.observe(s)); /*[cite: 4]*/
+  sections.forEach(s => navObserver.observe(s));
 
   // Initialize
-  const initialNavActive = document.querySelector('.nav-links a.active') || navAnchors[0]; /*[cite: 4]*/
+  const initialNavActive = document.querySelector('.nav-links a.active') || navAnchors[0];
   if (initialNavActive) {
-    setTimeout(() => updateNavIndicator(initialNavActive), 80);
+    setTimeout(() => updateNavIndicator(initialNavActive, false), 80);
   }
 
   window.addEventListener('resize', () => {
-    const active = document.querySelector('.nav-links a.active'); /*[cite: 4]*/
+    const active = document.querySelector('.nav-links a.active');
     if (active) updateNavIndicator(active, false);
   });
-
   /* ============================================================
      HERO — exact pixel-width sliding text animation
      ============================================================ */
@@ -1392,3 +1520,4 @@
     if (e.target === modal) hideModal();
   });
 })();
+
