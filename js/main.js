@@ -5,101 +5,303 @@
   const isMobile = window.innerWidth < 720;
 
   /* ============================================================
-     NAVBAR — smooth indicator with click-lock & scroll spy
+     NAVBAR — smooth indicator with liquid drag, release momentum & click-lock
      ============================================================ */
-  const navbar = document.getElementById("navbar");
-  const navToggle = document.getElementById("navToggle");
-  const navLinks = document.getElementById("navLinks");
-  const navIndicator = document.getElementById("navIndicator");
-  const navAnchors = Array.from(document.querySelectorAll('[data-nav]'));
-  let isClickScrolling = false;
-  let clickScrollTimer = null;
+  const navbar = document.getElementById("navbar"); /*[cite: 4]*/
+  const navToggle = document.getElementById("navToggle"); /*[cite: 4]*/
+  const navLinks = document.getElementById("navLinks"); /*[cite: 4]*/
+  const navIndicator = document.getElementById("navIndicator"); /*[cite: 4]*/
+  const navAnchors = Array.from(document.querySelectorAll('[data-nav]')); /*[cite: 4]*/
+
+  let isClickScrolling = false; /*[cite: 4]*/
+  let clickScrollTimer = null; /*[cite: 4]*/
+  let isPointerDown = false;
+  let isDragging = false;
+  let startX = 0;
+  let initialLeft = 0;
+  let initialWidth = 0;
+  let currentTargetAnchor = null;
+  let dragThresholdPassed = false;
+  let dragDirection = 0; // Tracks +1 for right, -1 for left
 
   function onScroll() {
-    if (navbar) navbar.classList.toggle("scrolled", window.scrollY > 40);
+    if (navbar) navbar.classList.toggle("scrolled", window.scrollY > 40); /*[cite: 4]*/
   }
-  onScroll();
-  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll(); /*[cite: 4]*/
+  window.addEventListener("scroll", onScroll, { passive: true }); /*[cite: 4]*/
 
   if (navToggle && navLinks) {
     navToggle.addEventListener("click", () => {
-      const open = navLinks.classList.toggle("open");
-      navToggle.classList.toggle("open", open);
-      navToggle.setAttribute("aria-expanded", String(open));
+      const open = navLinks.classList.toggle("open"); /*[cite: 4]*/
+      navToggle.classList.toggle("open", open); /*[cite: 4]*/
+      navToggle.setAttribute("aria-expanded", String(open)); /*[cite: 4]*/
     });
   }
 
-  // Linear, direct slide from current position to target
-  function updateNavIndicator(targetAnchor) {
-    if (!targetAnchor || !navIndicator || !navLinks || window.innerWidth <= 900) {
-      if (navIndicator) navIndicator.style.opacity = "0";
-      return;
+  // Prevent default HTML5 link ghosting
+  navAnchors.forEach(a => {
+    a.setAttribute("draggable", "false");
+    a.addEventListener("dragstart", (e) => e.preventDefault());
+  });
+
+  // Standard click liquid spring animation
+  function updateNavIndicator(targetAnchor, animateFluid = true) {
+    if (!targetAnchor || !navIndicator || !navLinks || window.innerWidth <= 900) { /*[cite: 4]*/
+      if (navIndicator) navIndicator.style.opacity = "0"; /*[cite: 4]*/
+      return; /*[cite: 4]*/
     }
+
+    const containerRect = navLinks.getBoundingClientRect(); /*[cite: 4]*/
+    const anchorRect = targetAnchor.getBoundingClientRect(); /*[cite: 4]*/
+
+    const leftOffset = anchorRect.left - containerRect.left; /*[cite: 4]*/
+    const anchorWidth = anchorRect.width; /*[cite: 4]*/
+
+    navIndicator.style.opacity = "1"; /*[cite: 4]*/
+
+    if (animateFluid) {
+      navIndicator.style.width = `${anchorWidth * 1.25}px`;
+      navIndicator.style.transform = `translateX(${leftOffset}px)`;
+
+      setTimeout(() => {
+        navIndicator.style.width = `${anchorWidth}px`;
+      }, 180);
+    } else {
+      navIndicator.style.width = `${anchorWidth}px`; /*[cite: 4]*/
+      navIndicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
+    }
+  }
+
+  // Liquid Forward Overshoot on Drag Release
+  function releaseWithForwardOvershoot(targetAnchor, direction) {
+    if (!targetAnchor || !navIndicator || !navLinks) return;
 
     const containerRect = navLinks.getBoundingClientRect();
     const anchorRect = targetAnchor.getBoundingClientRect();
+    const targetLeft = anchorRect.left - containerRect.left;
+    const targetWidth = anchorRect.width;
 
-    const leftOffset = anchorRect.left - containerRect.left;
-    const anchorWidth = anchorRect.width;
+    const stretchAmount = 26; // Forward liquid protrusion in px
+    const expandedWidth = targetWidth + stretchAmount;
 
-    navIndicator.style.opacity = "1";
-    navIndicator.style.width = `${anchorWidth}px`;
-    navIndicator.style.transform = `translateX(${leftOffset}px)`;
+    // Apply fast spring transition for the release snap
+    navIndicator.style.transition = `
+      transform 0.26s cubic-bezier(0.25, 1, 0.5, 1),
+      width 0.26s cubic-bezier(0.25, 1, 0.5, 1),
+      opacity 0.3s cubic-bezier(0.22, 0.68, 0, 1),
+      background-position 0.5s ease
+    `;
+
+    // Phase 1: Forward liquid surge in dragging direction
+    if (direction > 0) {
+      // Surges forward to the right
+      navIndicator.style.transform = `translateX(${targetLeft}px)`;
+      navIndicator.style.width = `${expandedWidth}px`;
+    } else if (direction < 0) {
+      // Surges forward to the left
+      navIndicator.style.transform = `translateX(${targetLeft - stretchAmount}px)`;
+      navIndicator.style.width = `${expandedWidth}px`;
+    } else {
+      navIndicator.style.transform = `translateX(${targetLeft}px)`;
+      navIndicator.style.width = `${targetWidth}px`;
+    }
+
+    // Phase 2: Snap back smoothly to rest position
+    setTimeout(() => {
+      navIndicator.style.transition = `
+        transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+        width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 0.3s cubic-bezier(0.22, 0.68, 0, 1),
+        background-position 0.5s ease
+      `;
+      navIndicator.style.transform = `translateX(${targetLeft}px)`;
+      navIndicator.style.width = `${targetWidth}px`;
+    }, 180);
   }
 
-  // Click handler: locks ScrollSpy during the scroll so the pill moves straight to the target
+  function getClosestAnchor(currentCenterX) {
+    const containerRect = navLinks.getBoundingClientRect();
+    let closest = navAnchors[0];
+    let minDistance = Infinity;
+
+    navAnchors.forEach(anchor => {
+      const rect = anchor.getBoundingClientRect();
+      const anchorCenterX = (rect.left - containerRect.left) + rect.width / 2;
+      const dist = Math.abs(currentCenterX - anchorCenterX);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = anchor;
+      }
+    });
+    return closest;
+  }
+
+  function navigateTo(targetAnchor, smoothScroll = true) {
+    if (!targetAnchor) return;
+    navAnchors.forEach(a => a.classList.remove("active"));
+    targetAnchor.classList.add("active");
+
+    if (smoothScroll) {
+      const targetId = targetAnchor.getAttribute("href");
+      const targetEl = document.querySelector(targetId);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  }
+
+  // --- Drag & Liquid Slide Controller ---
+  if (navLinks && navIndicator) {
+    navLinks.addEventListener("pointerdown", (e) => {
+      if (window.innerWidth <= 900 || e.button !== 0) return;
+
+      isPointerDown = true;
+      isDragging = false;
+      dragThresholdPassed = false;
+      startX = e.clientX;
+      dragDirection = 0;
+
+      const containerRect = navLinks.getBoundingClientRect();
+      const indicatorRect = navIndicator.getBoundingClientRect();
+      initialLeft = indicatorRect.left - containerRect.left;
+      initialWidth = indicatorRect.width;
+    });
+
+    window.addEventListener("pointermove", (e) => {
+  if (!isPointerDown) return;
+
+  const deltaX = e.clientX - startX;
+  dragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
+
+  if (!isDragging && Math.abs(deltaX) > 6) {
+    isDragging = true;
+    dragThresholdPassed = true;
+    navIndicator.classList.add("is-dragging");
+  }
+
+  if (isDragging) {
+    e.preventDefault();
+    const containerRect = navLinks.getBoundingClientRect();
+
+    // Fluid drag stretch
+    const stretchFactor = 0.38;
+    const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 45);
+
+    let newLeft = initialLeft;
+    let newWidth = initialWidth + stretch;
+
+    if (deltaX > 0) {
+      newLeft = initialLeft + deltaX - stretch;
+    } else {
+      newLeft = initialLeft + deltaX;
+    }
+
+    const maxLeft = containerRect.width - newWidth;
+    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+    // Dynamic liquid squeeze: stretches wider horizontally, compresses slightly vertically
+    const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
+
+    navIndicator.style.width = `${newWidth}px`;
+    navIndicator.style.transform = `translateX(${newLeft}px) scaleY(${liquidSqueeze})`;
+
+    // Highlight matching link under the pill
+    const currentCenterX = newLeft + newWidth / 2;
+    const closest = getClosestAnchor(currentCenterX);
+    if (closest && closest !== currentTargetAnchor) {
+      currentTargetAnchor = closest;
+      navAnchors.forEach(a => a.classList.remove("active"));
+      closest.classList.add("active");
+    }
+  }
+});
+
+    window.addEventListener("pointerup", (e) => {
+      if (!isPointerDown) return;
+      isPointerDown = false;
+
+      if (isDragging) {
+        isDragging = false;
+        navIndicator.classList.remove("is-dragging");
+
+        const containerRect = navLinks.getBoundingClientRect();
+        const indicatorRect = navIndicator.getBoundingClientRect();
+        const currentCenterX = (indicatorRect.left - containerRect.left) + indicatorRect.width / 2;
+        const targetAnchor = getClosestAnchor(currentCenterX);
+
+        if (targetAnchor) {
+          isClickScrolling = true;
+          clearTimeout(clickScrollTimer);
+          clickScrollTimer = setTimeout(() => {
+            isClickScrolling = false;
+          }, 850);
+
+          navigateTo(targetAnchor, true);
+          // Release forward surge + elastic rebound
+          releaseWithForwardOvershoot(targetAnchor, dragDirection);
+        }
+      }
+    });
+  }
+
+  // --- Click Navigation ---
   navAnchors.forEach(link => {
-    link.addEventListener("click", () => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      if (dragThresholdPassed) {
+        dragThresholdPassed = false;
+        return;
+      }
+
       if (navLinks) navLinks.classList.remove("open");
       if (navToggle) {
         navToggle.classList.remove("open");
         navToggle.setAttribute("aria-expanded", "false");
       }
 
-      // Lock scroll observer updates for 800ms
       isClickScrolling = true;
       clearTimeout(clickScrollTimer);
       clickScrollTimer = setTimeout(() => {
         isClickScrolling = false;
       }, 850);
 
-      navAnchors.forEach(a => a.classList.remove("active"));
-      link.classList.add("active");
-      updateNavIndicator(link);
+      navigateTo(link, true);
+      updateNavIndicator(link, true);
     });
   });
 
-  // ScrollSpy observer (ignored when smooth scroll was triggered by click)
-  const sections = ["home", "about", "education", "skills", "portfolio", "testimonials", "contact"]
-    .map(id => document.getElementById(id)).filter(Boolean);
+  // --- ScrollSpy Observer ---
+  const sections = ["home", "about", "education", "skills", "portfolio", "testimonials", "contact"] /*[cite: 4]*/
+    .map(id => document.getElementById(id)).filter(Boolean); /*[cite: 4]*/
 
   const navObserver = new IntersectionObserver((entries) => {
-    if (isClickScrolling) return; // Prevent intermediate triggers
+    if (isClickScrolling || isDragging || isPointerDown) return;
 
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        const id = entry.target.id;
-        const matchingLink = navAnchors.find(a => a.getAttribute("href") === "#" + id);
+        const id = entry.target.id; /*[cite: 4]*/
+        const matchingLink = navAnchors.find(a => a.getAttribute("href") === "#" + id); /*[cite: 4]*/
         if (matchingLink) {
-          navAnchors.forEach(a => a.classList.remove("active"));
-          matchingLink.classList.add("active");
-          updateNavIndicator(matchingLink);
+          navAnchors.forEach(a => a.classList.remove("active")); /*[cite: 4]*/
+          matchingLink.classList.add("active"); /*[cite: 4]*/
+          updateNavIndicator(matchingLink, false);
         }
       }
     });
-  }, { rootMargin: "-45% 0px -50% 0px" });
+  }, { rootMargin: "-45% 0px -50% 0px" }); /*[cite: 4]*/
 
-  sections.forEach(s => navObserver.observe(s));
+  sections.forEach(s => navObserver.observe(s)); /*[cite: 4]*/
 
-  // Initialize indicator position
-  const initialNavActive = document.querySelector('.nav-links a.active') || navAnchors[0];
+  // Initialize
+  const initialNavActive = document.querySelector('.nav-links a.active') || navAnchors[0]; /*[cite: 4]*/
   if (initialNavActive) {
     setTimeout(() => updateNavIndicator(initialNavActive), 80);
   }
 
   window.addEventListener('resize', () => {
-    const active = document.querySelector('.nav-links a.active');
-    if (active) updateNavIndicator(active);
+    const active = document.querySelector('.nav-links a.active'); /*[cite: 4]*/
+    if (active) updateNavIndicator(active, false);
   });
 
   /* ============================================================
@@ -191,214 +393,408 @@
   }
 
   /* ============================================================
-     SKILLS SECTION — tabs + cards
+     SKILLS SECTION — tabs + liquid drag & cards
      ============================================================ */
   function renderSkillGrid(containerId, list) {
-  const el = document.getElementById(containerId);
-  if (!el || !list) return;
-  
-  el.innerHTML = list.map(s => `
-    <div class="skill-card">
-      ${s.icon ? `
-        <div class="skill-icon-wrapper">
-          <svg class="skill-circle-svg" viewBox="0 0 76 76">
-            <circle class="circle-bg" cx="38" cy="38" r="34"></circle>
-            <circle class="circle-progress" cx="38" cy="38" r="34"></circle>
-          </svg>
-          <div class="skill-icon-img">
-            <span class="skill-icon-mask" style="--icon-url: url('${s.icon}');"></span>
+    const el = document.getElementById(containerId); /*[cite: 4]*/
+    if (!el || !list) return; /*[cite: 4]*/
+    
+    el.innerHTML = list.map(s => `
+      <div class="skill-card">
+        ${s.icon ? `
+          <div class="skill-icon-wrapper">
+            <svg class="skill-circle-svg" viewBox="0 0 76 76">
+              <circle class="circle-bg" cx="38" cy="38" r="34"></circle>
+              <circle class="circle-progress" cx="38" cy="38" r="34"></circle>
+            </svg>
+            <div class="skill-icon-img">
+              <span class="skill-icon-mask" style="--icon-url: url('${s.icon}');"></span>
+            </div>
           </div>
+        ` : ""}
+        <div class="skill-card-top">
+          <h4>${s.name}</h4>
+          <span>${s.level}%</span>
         </div>
-      ` : ""}
-      <div class="skill-card-top">
-        <h4>${s.name}</h4>
-        <span>${s.level}%</span>
-      </div>
-      <p>${s.note || ""}</p>
-      <div class="skillbar-track"><div class="skillbar-fill" data-fill="${s.level}"></div></div>
-    </div>`).join("");
-}
-  renderSkillGrid("programmingGrid", typeof PROGRAMMING_SKILLS !== "undefined" ? PROGRAMMING_SKILLS : []);
-  renderSkillGrid("softwareGrid", typeof SOFTWARE_SKILLS !== "undefined" ? SOFTWARE_SKILLS : []);
+        <p>${s.note || ""}</p>
+        <div class="skillbar-track"><div class="skillbar-fill" data-fill="${s.level}"></div></div>
+      </div>`).join(""); /*[cite: 4]*/
+  }
+  renderSkillGrid("programmingGrid", typeof PROGRAMMING_SKILLS !== "undefined" ? PROGRAMMING_SKILLS : []); /*[cite: 4]*/
+  renderSkillGrid("softwareGrid", typeof SOFTWARE_SKILLS !== "undefined" ? SOFTWARE_SKILLS : []); /*[cite: 4]*/
 
-  const tabsContainer = document.querySelector('.skills-tabs');
-  const indicator = document.getElementById('skillsIndicator');
-  const tabs = document.querySelectorAll('.skills-tab');
+  const tabsContainer = document.querySelector('.skills-tabs'); /*[cite: 4]*/
+  const indicator = document.getElementById('skillsIndicator'); /*[cite: 4]*/
+  const tabs = Array.from(document.querySelectorAll('.skills-tab'));
+
+  let isSkillsPointerDown = false;
+  let isSkillsDragging = false;
+  let skillsStartX = 0;
+  let skillsInitialLeft = 0;
+  let skillsInitialWidth = 0;
+  let skillsDragThresholdPassed = false;
+  let skillsDragDirection = 0;
+  let currentTargetTab = null;
+
+  // Prevent ghost dragging
+  tabs.forEach(tab => {
+    tab.setAttribute("draggable", "false");
+    tab.addEventListener("dragstart", (e) => e.preventDefault());
+  });
 
   function updateIndicator(targetTab, animateFluid = true) {
+    if (!targetTab || !indicator || !tabsContainer) return; /*[cite: 4]*/
+
+    const containerRect = tabsContainer.getBoundingClientRect(); /*[cite: 4]*/
+    const tabRect = targetTab.getBoundingClientRect(); /*[cite: 4]*/
+
+    const leftOffset = tabRect.left - containerRect.left; /*[cite: 4]*/
+    const tabWidth = tabRect.width; /*[cite: 4]*/
+
+    indicator.style.transition = `
+      transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
+      width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1)
+    `;
+
+    if (animateFluid) {
+      indicator.style.width = `${tabWidth * 1.25}px`; /*[cite: 4]*/
+      indicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
+
+      setTimeout(() => {
+        indicator.style.width = `${tabWidth}px`; /*[cite: 4]*/
+      }, 180); /*[cite: 4]*/
+    } else {
+      indicator.style.width = `${tabWidth}px`; /*[cite: 4]*/
+      indicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
+    }
+  }
+
+  // Forward momentum surge and snap on drag release
+  function releaseSkillsWithOvershoot(targetTab, direction) {
     if (!targetTab || !indicator || !tabsContainer) return;
 
     const containerRect = tabsContainer.getBoundingClientRect();
     const tabRect = targetTab.getBoundingClientRect();
+    const targetLeft = tabRect.left - containerRect.left;
+    const targetWidth = tabRect.width;
 
-    const leftOffset = tabRect.left - containerRect.left;
-    const tabWidth = tabRect.width;
+    const stretchAmount = 24;
+    const expandedWidth = targetWidth + stretchAmount;
 
-    if (animateFluid) {
-      indicator.style.width = `${tabWidth * 1.25}px`;
+    // Fast surge in drag direction
+    indicator.style.transition = `
+      transform 0.26s cubic-bezier(0.25, 1, 0.5, 1),
+      width 0.26s cubic-bezier(0.25, 1, 0.5, 1)
+    `;
+
+    if (direction > 0) {
+      indicator.style.transform = `translateX(${targetLeft}px)`;
+      indicator.style.width = `${expandedWidth}px`;
+    } else if (direction < 0) {
+      indicator.style.transform = `translateX(${targetLeft - stretchAmount}px)`;
+      indicator.style.width = `${expandedWidth}px`;
     } else {
-      indicator.style.width = `${tabWidth}px`;
+      indicator.style.transform = `translateX(${targetLeft}px)`;
+      indicator.style.width = `${targetWidth}px`;
     }
 
-    indicator.style.transform = `translateX(${leftOffset}px)`;
-
+    // Elastic snap-back
     setTimeout(() => {
-      indicator.style.width = `${tabWidth}px`;
+      indicator.style.transition = `
+        transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+        width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)
+      `;
+      indicator.style.transform = `translateX(${targetLeft}px)`;
+      indicator.style.width = `${targetWidth}px`;
     }, 180);
   }
 
-  const initialActive = document.querySelector('.skills-tab.active');
-  if (initialActive) {
-    setTimeout(() => updateIndicator(initialActive, false), 50);
+  function getClosestSkillTab(currentCenterX) {
+    const containerRect = tabsContainer.getBoundingClientRect();
+    let closest = tabs[0];
+    let minDistance = Infinity;
+
+    tabs.forEach(tab => {
+      const rect = tab.getBoundingClientRect();
+      const tabCenterX = (rect.left - containerRect.left) + rect.width / 2;
+      const dist = Math.abs(currentCenterX - tabCenterX);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = tab;
+      }
+    });
+    return closest;
   }
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => { 
-        t.classList.remove('active'); 
-        t.setAttribute('aria-selected', 'false'); 
+  function switchSkillsPanel(tab) {
+    document.querySelectorAll('.skills-panel').forEach(p => {
+      p.classList.remove('active'); /*[cite: 4]*/
+      p.classList.remove('is-visible'); /*[cite: 4]*/
+    });
+
+    const panel = document.getElementById('panel-' + tab.dataset.tab); /*[cite: 4]*/
+    if (panel) {
+      panel.classList.add('active'); /*[cite: 4]*/
+      requestAnimationFrame(() => {
+        panel.classList.add('is-visible'); /*[cite: 4]*/
+        if (typeof fillBar === 'function') {
+          panel.querySelectorAll('.skillbar-fill').forEach(fillBar); /*[cite: 4]*/
+        }
       });
+    }
+  }
 
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
+  function activateSkillTab(tab, animateFluid = true) {
+    tabs.forEach(t => { 
+      t.classList.remove('active'); /*[cite: 4]*/
+      t.setAttribute('aria-selected', 'false'); /*[cite: 4]*/
+    });
 
-      updateIndicator(tab, true);
+    tab.classList.add('active'); /*[cite: 4]*/
+    tab.setAttribute('aria-selected', 'true'); /*[cite: 4]*/
 
-      // Reset animation state
-      document.querySelectorAll('.skills-panel').forEach(p => {
-        p.classList.remove('active');
-        p.classList.remove('is-visible');
+    switchSkillsPanel(tab);
+    if (animateFluid) updateIndicator(tab, true);
+  }
+
+  // --- Pointer Drag Handling on Skills Tab Container ---
+  if (tabsContainer && indicator) {
+    tabsContainer.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+
+      isSkillsPointerDown = true;
+      isSkillsDragging = false;
+      skillsDragThresholdPassed = false;
+      skillsStartX = e.clientX;
+      skillsDragDirection = 0;
+
+      const containerRect = tabsContainer.getBoundingClientRect();
+      const indicatorRect = indicator.getBoundingClientRect();
+      skillsInitialLeft = indicatorRect.left - containerRect.left;
+      skillsInitialWidth = indicatorRect.width;
+    });
+
+    window.addEventListener("pointermove", (e) => {
+  if (!isSkillsPointerDown) return;
+
+  const deltaX = e.clientX - skillsStartX;
+  skillsDragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
+
+  if (!isSkillsDragging && Math.abs(deltaX) > 6) {
+    isSkillsDragging = true;
+    skillsDragThresholdPassed = true;
+    indicator.classList.add("is-dragging");
+  }
+
+  if (isSkillsDragging) {
+    e.preventDefault();
+    const containerRect = tabsContainer.getBoundingClientRect();
+
+    const stretchFactor = 0.38;
+    const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 40);
+
+    let newLeft = skillsInitialLeft;
+    let newWidth = skillsInitialWidth + stretch;
+
+    if (deltaX > 0) {
+      newLeft = skillsInitialLeft + deltaX - stretch;
+    } else {
+      newLeft = skillsInitialLeft + deltaX;
+    }
+
+    const maxLeft = containerRect.width - newWidth;
+    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+    const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
+
+    indicator.style.width = `${newWidth}px`;
+    indicator.style.transform = `translateX(${newLeft}px) scaleY(${liquidSqueeze})`;
+
+    const currentCenterX = newLeft + newWidth / 2;
+    const closest = getClosestSkillTab(currentCenterX);
+    if (closest && closest !== currentTargetTab) {
+      currentTargetTab = closest;
+      tabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
       });
+      closest.classList.add('active');
+      closest.setAttribute('aria-selected', 'true');
+    }
+  }
+});
 
-      const panel = document.getElementById('panel-' + tab.dataset.tab);
-      if (panel) {
-        panel.classList.add('active');
-        // Re-trigger entrance animation
-        requestAnimationFrame(() => {
-          panel.classList.add('is-visible');
-          if (typeof fillBar === 'function') {
-            panel.querySelectorAll('.skillbar-fill').forEach(fillBar);
-          }
-        });
+    window.addEventListener("pointerup", (e) => {
+      if (!isSkillsPointerDown) return;
+      isSkillsPointerDown = false;
+
+      if (isSkillsDragging) {
+        isSkillsDragging = false;
+        indicator.classList.remove("is-dragging");
+
+        const containerRect = tabsContainer.getBoundingClientRect();
+        const indicatorRect = indicator.getBoundingClientRect();
+        const currentCenterX = (indicatorRect.left - containerRect.left) + indicatorRect.width / 2;
+        const targetTab = getClosestSkillTab(currentCenterX);
+
+        if (targetTab) {
+          activateSkillTab(targetTab, false);
+          releaseSkillsWithOvershoot(targetTab, skillsDragDirection);
+        }
       }
+    });
+  }
+
+  // --- Click Navigation on Tabs ---
+  tabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      if (skillsDragThresholdPassed) {
+        skillsDragThresholdPassed = false;
+        return;
+      }
+
+      activateSkillTab(tab, true);
     });
   });
 
+  const initialActive = document.querySelector('.skills-tab.active'); /*[cite: 4]*/
+  if (initialActive) {
+    setTimeout(() => updateIndicator(initialActive, false), 50); /*[cite: 4]*/
+  }
+
   window.addEventListener('resize', () => {
-    const activeTab = document.querySelector('.skills-tab.active');
-    if (activeTab) updateIndicator(activeTab, false);
+    const activeTab = document.querySelector('.skills-tab.active'); /*[cite: 4]*/
+    if (activeTab) updateIndicator(activeTab, false); /*[cite: 4]*/
   });
 
   /* ============================================================
-     PORTFOLIO — cards + interactive modal
+     PORTFOLIO — cards, liquid drag filters & interactive modal
      ============================================================ */
   const FILTERS = [
-    { key: "all", label: "All" },
-    { key: "certificate", label: "Certificate" },
-    { key: "award", label: "Award" },
-    { key: "scholarship", label: "Scholarship" },
-    { key: "project", label: "Project" }
+    { key: "all", label: "All" }, /*[cite: 4]*/
+    { key: "certificate", label: "Certificate" }, /*[cite: 4]*/
+    { key: "award", label: "Award" }, /*[cite: 4]*/
+    { key: "scholarship", label: "Scholarship" }, /*[cite: 4]*/
+    { key: "project", label: "Project" } /*[cite: 4]*/
   ];
 
-  const filterRow = document.getElementById("filterRow");
-  const portfolioGrid = document.getElementById("portfolioGrid");
-  const pModal = document.getElementById("portfolioModal");
-  const modalContent = document.querySelector(".p-modal-content");
-  const modalBody = document.getElementById("modalBody");
-  const modalClose = document.getElementById("modalClose");
-  let activeButton = null;
+  const filterRow = document.getElementById("filterRow"); /*[cite: 4]*/
+  const portfolioGrid = document.getElementById("portfolioGrid"); /*[cite: 4]*/
+  const pModal = document.getElementById("portfolioModal"); /*[cite: 4]*/
+  const modalContent = document.querySelector(".p-modal-content"); /*[cite: 4]*/
+  const modalBody = document.getElementById("modalBody"); /*[cite: 4]*/
+  const modalClose = document.getElementById("modalClose"); /*[cite: 4]*/
+  let activeButton = null; /*[cite: 4]*/
 
   function renderPortfolio() {
-  if (!portfolioGrid || typeof PORTFOLIO_ITEMS === "undefined") return;
-  portfolioGrid.innerHTML = PORTFOLIO_ITEMS.map((item, index) => `
-    <div class="p-card" data-cat="${item.category}">
-      <div class="p-thumb">
-        <img src="${item.image}" alt="${item.title}" loading="lazy">
-        <span class="p-cat">${item.category}</span>
-      </div>
-      <div class="p-body">
-        <h4>${item.title}</h4>
-        <button type="button" class="p-link" data-index="${index}">
-          View details
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M9 7h8v8"/></svg>
-        </button>
-      </div>
-    </div>`).join("");
-}
-  renderPortfolio();
+    if (!portfolioGrid || typeof PORTFOLIO_ITEMS === "undefined") return; /*[cite: 4]*/
+    portfolioGrid.innerHTML = PORTFOLIO_ITEMS.map((item, index) => `
+      <div class="p-card" data-cat="${item.category}">
+        <div class="p-thumb">
+          <img src="${item.image}" alt="${item.title}" loading="lazy">
+          <span class="p-cat">${item.category}</span>
+        </div>
+        <div class="p-body">
+          <h4>${item.title}</h4>
+          <button type="button" class="p-link" data-index="${index}">
+            View details
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M9 7h8v8"/></svg>
+          </button>
+        </div>
+      </div>`).join(""); /*[cite: 4]*/
+  }
+  renderPortfolio(); /*[cite: 4]*/
 
+  /* ============================================================
+     PORTFOLIO MODAL — button origin pop expansion
+     ============================================================ */
+  /* ============================================================
+     PORTFOLIO MODAL — liquid box expansion & delayed content reveal
+     ============================================================ */
   function openModal(index, clickedBtn) {
-    if (typeof PORTFOLIO_ITEMS === "undefined") return;
-    const item = PORTFOLIO_ITEMS[index];
-    if (!item || !modalBody || !pModal || !modalContent) return;
+    if (typeof PORTFOLIO_ITEMS === "undefined") return; /*[cite: 4]*/
+    const item = PORTFOLIO_ITEMS[index]; /*[cite: 4]*/
+    if (!item || !modalBody || !pModal || !modalContent) return; /*[cite: 4]*/
 
-    activeButton = clickedBtn;
-    if (activeButton) activeButton.classList.add("button-hidden");
+    activeButton = clickedBtn; /*[cite: 4]*/
 
-    if (clickedBtn) {
-      const btnRect = clickedBtn.getBoundingClientRect();
-      const targetCenterX = window.innerWidth / 2;
-      const targetCenterY = window.innerHeight / 2;
-
-      const btnCenterX = btnRect.left + btnRect.width / 2;
-      const btnCenterY = btnRect.top + btnRect.height / 2;
-
-      const deltaX = btnCenterX - targetCenterX;
-      const deltaY = btnCenterY - targetCenterY;
-
-      modalContent.style.setProperty("--origin-x", `${deltaX}px`);
-      modalContent.style.setProperty("--origin-y", `${deltaY}px`);
-    }
-
+    // Populate data
     modalBody.innerHTML = `
       <span class="p-modal-cat">${item.category}</span>
       <h3>${item.title}</h3>
       <p>${item.description || "No description provided."}</p>
       ${item.link && item.link !== '#' ? `<a href="${item.link}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Visit Project</a>` : ''}
-    `;
+    `; /*[cite: 4]*/
+
+    if (clickedBtn) {
+      clickedBtn.classList.add("button-hidden");
+
+      const btnRect = clickedBtn.getBoundingClientRect();
+      const modalRect = modalContent.getBoundingClientRect();
+
+      const btnCenterX = btnRect.left + btnRect.width / 2;
+      const btnCenterY = btnRect.top + btnRect.height / 2;
+
+      const viewportCenterX = window.innerWidth / 2;
+      const viewportCenterY = window.innerHeight / 2;
+
+      const deltaX = btnCenterX - viewportCenterX;
+      const deltaY = btnCenterY - viewportCenterY;
+      const initialScale = Math.max(0.12, Math.min(0.25, btnRect.width / (modalRect.width || 540)));
+
+      // Lock launch origin coordinates
+      modalContent.style.setProperty("--origin-x", `${deltaX}px`);
+      modalContent.style.setProperty("--origin-y", `${deltaY}px`);
+      modalContent.style.setProperty("--origin-scale", `${initialScale}`);
+    }
 
     requestAnimationFrame(() => {
-      pModal.classList.add("open");
-      document.body.style.overflow = "hidden";
+      pModal.classList.add("open"); /*[cite: 4]*/
+      document.body.style.overflow = "hidden"; /*[cite: 4]*/
     });
   }
 
   function closeModal() {
-    if (!pModal) return;
-    pModal.classList.remove("open");
-    document.body.style.overflow = "";
+    if (!pModal) return; /*[cite: 4]*/
 
-    if (activeButton) {
-      activeButton.classList.remove("button-hidden");
-      activeButton = null;
-    }
+    pModal.classList.remove("open"); /*[cite: 4]*/
+    document.body.style.overflow = ""; /*[cite: 4]*/
+
+    setTimeout(() => {
+      if (activeButton) {
+        activeButton.classList.remove("button-hidden"); /*[cite: 4]*/
+        activeButton = null; /*[cite: 4]*/
+      }
+    }, 180);
   }
 
   if (portfolioGrid) {
     portfolioGrid.addEventListener("click", (e) => {
-      const btn = e.target.closest(".p-link");
-      if (!btn) return;
-      e.preventDefault();
-      const index = Number(btn.getAttribute("data-index"));
-      openModal(index, btn);
+      const btn = e.target.closest(".p-link"); /*[cite: 4]*/
+      if (!btn) return; /*[cite: 4]*/
+      e.preventDefault(); /*[cite: 4]*/
+      const index = Number(btn.getAttribute("data-index")); /*[cite: 4]*/
+      openModal(index, btn); /*[cite: 4]*/
     });
   }
 
   if (modalClose) {
     modalClose.addEventListener("click", (e) => {
-      e.preventDefault();
-      closeModal();
+      e.preventDefault(); /*[cite: 4]*/
+      closeModal(); /*[cite: 4]*/
     });
   }
 
   if (pModal) {
     pModal.addEventListener("click", (e) => {
-      if (e.target === pModal) closeModal();
+      if (e.target === pModal) closeModal(); /*[cite: 4]*/
     });
   }
 
   window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
+    if (e.key === "Escape") closeModal(); /*[cite: 4]*/
   });
 
   if (filterRow) {
@@ -407,72 +803,243 @@
       ${FILTERS.map((f, i) =>
         `<button type="button" class="filter-btn${i === 0 ? " active" : ""}" data-filter="${f.key}">${f.label}</button>`
       ).join("")}
-    `;
+    `; /*[cite: 4]*/
   }
 
-  const portIndicator = document.getElementById("portfolioIndicator");
+  const portIndicator = document.getElementById("portfolioIndicator"); /*[cite: 4]*/
+  const filterBtns = Array.from(document.querySelectorAll(".filter-btn"));
+
+  let isPortPointerDown = false;
+  let isPortDragging = false;
+  let portStartX = 0;
+  let portInitialLeft = 0;
+  let portInitialWidth = 0;
+  let portDragThresholdPassed = false;
+  let portDragDirection = 0;
+  let currentTargetFilterBtn = null;
+
+  filterBtns.forEach(btn => {
+    btn.setAttribute("draggable", "false");
+    btn.addEventListener("dragstart", (e) => e.preventDefault());
+  });
 
   function updatePortfolioIndicator(targetBtn, animateFluid = true) {
+    if (!targetBtn || !portIndicator || !filterRow) return; /*[cite: 4]*/
+
+    const rowRect = filterRow.getBoundingClientRect(); /*[cite: 4]*/
+    const btnRect = targetBtn.getBoundingClientRect(); /*[cite: 4]*/
+
+    const leftOffset = btnRect.left - rowRect.left; /*[cite: 4]*/
+    const topOffset = btnRect.top - rowRect.top; /*[cite: 4]*/
+    const btnWidth = btnRect.width; /*[cite: 4]*/
+
+    portIndicator.style.opacity = "1"; /*[cite: 4]*/
+    portIndicator.style.top = `${topOffset}px`; /*[cite: 4]*/
+    portIndicator.style.height = `${btnRect.height}px`; /*[cite: 4]*/
+
+    portIndicator.style.transition = `
+      transform 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
+      width 0.45s cubic-bezier(0.5, 1.5, 0.5, 1),
+      opacity 0.3s var(--ease),
+      background-position 0.5s ease
+    `;
+
+    if (animateFluid) {
+      portIndicator.style.width = `${btnWidth * 1.2}px`; /*[cite: 4]*/
+      portIndicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
+
+      setTimeout(() => {
+        portIndicator.style.width = `${btnWidth}px`; /*[cite: 4]*/
+      }, 180); /*[cite: 4]*/
+    } else {
+      portIndicator.style.width = `${btnWidth}px`; /*[cite: 4]*/
+      portIndicator.style.transform = `translateX(${leftOffset}px)`; /*[cite: 4]*/
+    }
+  }
+
+  // Momentum forward overshoot & snap on drag release
+  function releasePortfolioWithOvershoot(targetBtn, direction) {
     if (!targetBtn || !portIndicator || !filterRow) return;
 
     const rowRect = filterRow.getBoundingClientRect();
     const btnRect = targetBtn.getBoundingClientRect();
+    const targetLeft = btnRect.left - rowRect.left;
+    const targetWidth = btnRect.width;
 
-    const leftOffset = btnRect.left - rowRect.left;
-    const topOffset = btnRect.top - rowRect.top;
-    const btnWidth = btnRect.width;
+    const stretchAmount = 24;
+    const expandedWidth = targetWidth + stretchAmount;
 
-    portIndicator.style.opacity = "1";
-    portIndicator.style.top = `${topOffset}px`;
-    portIndicator.style.height = `${btnRect.height}px`;
+    portIndicator.style.transition = `
+      transform 0.26s cubic-bezier(0.25, 1, 0.5, 1),
+      width 0.26s cubic-bezier(0.25, 1, 0.5, 1)
+    `;
 
-    if (animateFluid) {
-      portIndicator.style.width = `${btnWidth * 1.2}px`;
+    if (direction > 0) {
+      portIndicator.style.transform = `translateX(${targetLeft}px)`;
+      portIndicator.style.width = `${expandedWidth}px`;
+    } else if (direction < 0) {
+      portIndicator.style.transform = `translateX(${targetLeft - stretchAmount}px)`;
+      portIndicator.style.width = `${expandedWidth}px`;
     } else {
-      portIndicator.style.width = `${btnWidth}px`;
+      portIndicator.style.transform = `translateX(${targetLeft}px)`;
+      portIndicator.style.width = `${targetWidth}px`;
     }
 
-    portIndicator.style.transform = `translateX(${leftOffset}px)`;
-
     setTimeout(() => {
-      portIndicator.style.width = `${btnWidth}px`;
+      portIndicator.style.transition = `
+        transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+        width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)
+      `;
+      portIndicator.style.transform = `translateX(${targetLeft}px)`;
+      portIndicator.style.width = `${targetWidth}px`;
     }, 180);
   }
 
-  if (filterRow) {
-    filterRow.addEventListener("click", (e) => {
-      const btn = e.target.closest(".filter-btn");
-      if (!btn) return;
+  function getClosestFilterBtn(currentCenterX) {
+    const rowRect = filterRow.getBoundingClientRect();
+    let closest = filterBtns[0];
+    let minDistance = Infinity;
 
-      filterRow.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      updatePortfolioIndicator(btn, true);
+    filterBtns.forEach(btn => {
+      const rect = btn.getBoundingClientRect();
+      const btnCenterX = (rect.left - rowRect.left) + rect.width / 2;
+      const dist = Math.abs(currentCenterX - btnCenterX);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = btn;
+      }
+    });
+    return closest;
+  }
 
-      const key = btn.dataset.filter;
-      
-      // Temporarily remove visibility class to reset animation
-      portfolioGrid.classList.remove("is-visible");
+  function applyFilter(key) {
+    if (!portfolioGrid) return;
+    portfolioGrid.classList.remove("is-visible"); /*[cite: 4]*/
 
-      document.querySelectorAll(".p-card").forEach(card => {
-        const match = key === "all" || card.dataset.cat === key;
-        card.classList.toggle("hide", !match);
-      });
+    document.querySelectorAll(".p-card").forEach(card => {
+      const match = key === "all" || card.dataset.cat === key; /*[cite: 4]*/
+      card.classList.toggle("hide", !match); /*[cite: 4]*/
+    });
 
-      // Re-trigger the pop-in entrance animation
-      requestAnimationFrame(() => {
-        portfolioGrid.classList.add("is-visible");
-      });
+    requestAnimationFrame(() => {
+      portfolioGrid.classList.add("is-visible"); /*[cite: 4]*/
     });
   }
 
-  const initialFilterActive = document.querySelector(".filter-btn.active");
+  function activateFilterBtn(btn, animateFluid = true) {
+    filterBtns.forEach(b => b.classList.remove("active")); /*[cite: 4]*/
+    btn.classList.add("active"); /*[cite: 4]*/
+
+    applyFilter(btn.dataset.filter);
+    if (animateFluid) updatePortfolioIndicator(btn, true);
+  }
+
+  // --- Pointer Drag Handling on Filter Row ---
+  if (filterRow && portIndicator) {
+    filterRow.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0) return;
+
+      isPortPointerDown = true;
+      isPortDragging = false;
+      portDragThresholdPassed = false;
+      portStartX = e.clientX;
+      portDragDirection = 0;
+
+      const rowRect = filterRow.getBoundingClientRect();
+      const indicatorRect = portIndicator.getBoundingClientRect();
+      portInitialLeft = indicatorRect.left - rowRect.left;
+      portInitialWidth = indicatorRect.width;
+    });
+
+    window.addEventListener("pointermove", (e) => {
+  if (!isPortPointerDown) return;
+
+  const deltaX = e.clientX - portStartX;
+  portDragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
+
+  if (!isPortDragging && Math.abs(deltaX) > 6) {
+    isPortDragging = true;
+    portDragThresholdPassed = true;
+    portIndicator.classList.add("is-dragging");
+  }
+
+  if (isPortDragging) {
+    e.preventDefault();
+    const rowRect = filterRow.getBoundingClientRect();
+
+    const stretchFactor = 0.38;
+    const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 42);
+
+    let newLeft = portInitialLeft;
+    let newWidth = portInitialWidth + stretch;
+
+    if (deltaX > 0) {
+      newLeft = portInitialLeft + deltaX - stretch;
+    } else {
+      newLeft = portInitialLeft + deltaX;
+    }
+
+    const maxLeft = rowRect.width - newWidth;
+    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+
+    const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
+
+    portIndicator.style.width = `${newWidth}px`;
+    portIndicator.style.transform = `translateX(${newLeft}px) scaleY(${liquidSqueeze})`;
+
+    const currentCenterX = newLeft + newWidth / 2;
+    const closest = getClosestFilterBtn(currentCenterX);
+    if (closest && closest !== currentTargetFilterBtn) {
+      currentTargetFilterBtn = closest;
+      filterBtns.forEach(b => b.classList.remove("active"));
+      closest.classList.add("active");
+    }
+  }
+});
+
+    window.addEventListener("pointerup", (e) => {
+      if (!isPortPointerDown) return;
+      isPortPointerDown = false;
+
+      if (isPortDragging) {
+        isPortDragging = false;
+        portIndicator.classList.remove("is-dragging");
+
+        const rowRect = filterRow.getBoundingClientRect();
+        const indicatorRect = portIndicator.getBoundingClientRect();
+        const currentCenterX = (indicatorRect.left - rowRect.left) + indicatorRect.width / 2;
+        const targetBtn = getClosestFilterBtn(currentCenterX);
+
+        if (targetBtn) {
+          activateFilterBtn(targetBtn, false);
+          releasePortfolioWithOvershoot(targetBtn, portDragDirection);
+        }
+      }
+    });
+  }
+
+  // --- Click Navigation on Filter Buttons ---
+  filterBtns.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+
+      if (portDragThresholdPassed) {
+        portDragThresholdPassed = false;
+        return;
+      }
+
+      activateFilterBtn(btn, true);
+    });
+  });
+
+  const initialFilterActive = document.querySelector(".filter-btn.active"); /*[cite: 4]*/
   if (initialFilterActive) {
-    setTimeout(() => updatePortfolioIndicator(initialFilterActive, false), 80);
+    setTimeout(() => updatePortfolioIndicator(initialFilterActive, false), 80); /*[cite: 4]*/
   }
 
   window.addEventListener("resize", () => {
-    const active = document.querySelector(".filter-btn.active");
-    if (active) updatePortfolioIndicator(active, false);
+    const active = document.querySelector(".filter-btn.active"); /*[cite: 4]*/
+    if (active) updatePortfolioIndicator(active, false); /*[cite: 4]*/
   });
 
   /* ============================================================
@@ -578,7 +1145,6 @@
   const contactForm = document.getElementById("contactForm");
   if (contactForm) {
     contactForm.addEventListener("submit", (e) => {
-      e.preventDefault();
       const note = document.getElementById("formNote");
       if (note) note.textContent = "Thanks — your message is ready to send once this form is connected to an email service.";
       contactForm.reset();
