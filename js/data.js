@@ -25,9 +25,9 @@ const SOCIAL_LINKS = [
 
 /* ---- About section skill bars ---- */
 const ABOUT_SKILLS = [
+  { label: "Development",  value: 80 },
   { label: "Web Design",   value: 70 },
-  { label: "Illustration", value: 95 },
-  { label: "Development",  value: 80 }
+  { label: "Illustration", value: 95 }
 ];
 
 /* ---- Education timeline ----
@@ -80,7 +80,7 @@ const PROGRAMMING_SKILLS = [
   { 
     name: "SQL", 
     level: 65, 
-    icon: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-plain.svg" 
+    icon: "https://raw.githubusercontent.com/tabler/tabler-icons/main/icons/outline/database.svg" 
   },
   { 
     name: "Java", 
@@ -113,14 +113,14 @@ const PORTFOLIO_ITEMS = [
     title: "Lauren Robel Bicentennial Scholarship by Indiana University Bloomington",
     category: "scholarship",
     image: "assets/badge-scholarship.jpg",
-    description: "Received $40000 (for four years) to continue my undergraduate degree in Astronomy and Astrophysics.",
+    description: "Offered $40000 (for four years) to continue my undergraduate degree in Astronomy and Astrophysics.",
     link: "#"
   },
   {
     title: "St. Thomas Aquinas Scholarship by Caldwell University",
     category: "scholarship",
     image: "assets/badge-scholarship-3.jpg",
-    description: "Received $33000 per year for four years to continue my undergraduate degree in Computer Science and Engineering.",
+    description: "Offered $33000 per year for four years to continue my undergraduate degree in Computer Science and Engineering.",
     link: "#"
   },
   {
@@ -162,7 +162,7 @@ const PORTFOLIO_ITEMS = [
     title: "Herrmann Merit Award by Mercyhurst University",
     category: "scholarship",
     image: "assets/badge-scholarship-2.jpg",
-    description: "Received $27000 per year for four years to continue my undergraduate degree in Physics. ",
+    description: "Offered $27000 per year for four years to continue my undergraduate degree in Physics. ",
     link: "#"
   }
 ];
@@ -196,6 +196,6 @@ const STATS = [
 
 /* ---- Contact info ---- */
 const CONTACT_INFO = {
-  email: "hello@email.com",
+  email: "riyadhossensajjad@gmail.com",
   location: "Dhaka, Bangladesh"
 };
