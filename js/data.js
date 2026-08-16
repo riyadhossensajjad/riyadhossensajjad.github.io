@@ -49,7 +49,7 @@ const EDUCATION = [
   {
     period: "2028",
     degree: "B.Sc. in Computer Science and Engineering",
-    gpa: "Fifth Semester",
+    gpa: "5th Semester",
     school: "University of Asia Pacific"
   }
 ];
