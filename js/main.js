@@ -147,7 +147,7 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
   navIndicator.style.height = `${height}px`;
 }
 
-  // 3. Momentum overshoot on Drag Release
+  // 3. Momentum overshoot on Drag Release + Drop Landing
   function releaseWithForwardOvershoot(targetAnchor, direction) {
     if (!targetAnchor || !navIndicator || !navLinks) return;
 
@@ -165,29 +165,30 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
     if (isMobile) {
       const expandedHeight = height + stretchAmount;
       if (direction > 0) {
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.transform = `translate(${left}px, ${top}px) scale(1.03, 1.03)`;
         navIndicator.style.height = `${expandedHeight}px`;
       } else if (direction < 0) {
-        navIndicator.style.transform = `translate(${left}px, ${top - stretchAmount}px)`;
+        navIndicator.style.transform = `translate(${left}px, ${top - stretchAmount}px) scale(1.03, 1.03)`;
         navIndicator.style.height = `${expandedHeight}px`;
       } else {
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.transform = `translate(${left}px, ${top}px) scale(1.03, 1.03)`;
         navIndicator.style.height = `${height}px`;
       }
     } else {
       const expandedWidth = width + stretchAmount;
       if (direction > 0) {
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.transform = `translate(${left}px, ${top}px) scale(1.03, 1.03)`;
         navIndicator.style.width = `${expandedWidth}px`;
       } else if (direction < 0) {
-        navIndicator.style.transform = `translate(${left - stretchAmount}px, ${top}px)`;
+        navIndicator.style.transform = `translate(${left - stretchAmount}px, ${top}px) scale(1.03, 1.03)`;
         navIndicator.style.width = `${expandedWidth}px`;
       } else {
-        navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+        navIndicator.style.transform = `translate(${left}px, ${top}px) scale(1.03, 1.03)`;
         navIndicator.style.width = `${width}px`;
       }
     }
 
+    // Snaps cleanly into the slot and drops back to resting scale
     setTimeout(() => {
       navIndicator.style.transition = `
         transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
@@ -195,7 +196,7 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
         height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
         opacity 0.3s var(--ease)
       `;
-      navIndicator.style.transform = `translate(${left}px, ${top}px)`;
+      navIndicator.style.transform = `translate(${left}px, ${top}px) scale(1, 1)`;
       navIndicator.style.width = `${width}px`;
       navIndicator.style.height = `${height}px`;
     }, 180);
@@ -286,7 +287,8 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
 
           navIndicator.style.width = `${initialWidth}px`;
           navIndicator.style.height = `${newHeight}px`;
-          navIndicator.style.transform = `translate(${initialLeft}px, ${newTop}px) scaleX(${squeezeX})`;
+          /* Float effect: scale(1.08) while dragging vertically */
+          navIndicator.style.transform = `translate(${initialLeft}px, ${newTop}px) scale(${squeezeX * 1.08}, 1.08)`;
 
           const currentCenterY = newTop + newHeight / 2;
           const closest = getClosestAnchor(currentCenterY, true);
@@ -306,7 +308,8 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
 
           navIndicator.style.width = `${newWidth}px`;
           navIndicator.style.height = `${initialHeight}px`;
-          navIndicator.style.transform = `translate(${newLeft}px, ${initialTop}px) scaleY(${squeezeY})`;
+          /* Float effect: scale(1.08) while dragging horizontally */
+          navIndicator.style.transform = `translate(${newLeft}px, ${initialTop}px) scale(1.08, ${squeezeY * 1.08})`;
 
           const currentCenterX = newLeft + newWidth / 2;
           const closest = getClosestAnchor(currentCenterX, false);
@@ -513,8 +516,8 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
      SKILLS SECTION — tabs + liquid drag & cards
      ============================================================ */
   function renderSkillGrid(containerId, list) {
-    const el = document.getElementById(containerId); /*[cite: 4]*/
-    if (!el || !list) return; /*[cite: 4]*/
+    const el = document.getElementById(containerId);
+    if (!el || !list) return;
     
     el.innerHTML = list.map(s => `
       <div class="skill-card">
@@ -525,7 +528,7 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
               <circle class="circle-progress" cx="38" cy="38" r="34"></circle>
             </svg>
             <div class="skill-icon-img">
-              <span class="skill-icon-mask" style="--icon-url: url('${s.icon}');"></span>
+              ${s.svg ? s.svg : `<span class="skill-icon-mask" style="--icon-url: url('${s.icon}');"></span>`}
             </div>
           </div>
         ` : ""}
@@ -535,7 +538,7 @@ function updateNavIndicator(targetAnchor, animateFluid = true) {
         </div>
         <p>${s.note || ""}</p>
         <div class="skillbar-track"><div class="skillbar-fill" data-fill="${s.level}"></div></div>
-      </div>`).join(""); /*[cite: 4]*/
+      </div>`).join("");
   }
   renderSkillGrid("programmingGrid", typeof PROGRAMMING_SKILLS !== "undefined" ? PROGRAMMING_SKILLS : []); /*[cite: 4]*/
   renderSkillGrid("softwareGrid", typeof SOFTWARE_SKILLS !== "undefined" ? SOFTWARE_SKILLS : []); /*[cite: 4]*/
@@ -580,7 +583,6 @@ function updateIndicator(targetTab, animateFluid = true) {
   indicator.style.width = `${tabWidth}px`;
 }
 
-  // Forward momentum surge and snap on drag release
   function releaseSkillsWithOvershoot(targetTab, direction) {
     if (!targetTab || !indicator || !tabsContainer) return;
 
@@ -592,30 +594,28 @@ function updateIndicator(targetTab, animateFluid = true) {
     const stretchAmount = 24;
     const expandedWidth = targetWidth + stretchAmount;
 
-    // Fast surge in drag direction
     indicator.style.transition = `
       transform 0.26s cubic-bezier(0.25, 1, 0.5, 1),
       width 0.26s cubic-bezier(0.25, 1, 0.5, 1)
     `;
 
     if (direction > 0) {
-      indicator.style.transform = `translateX(${targetLeft}px)`;
+      indicator.style.transform = `translateX(${targetLeft}px) scale(1.03, 1.03)`;
       indicator.style.width = `${expandedWidth}px`;
     } else if (direction < 0) {
-      indicator.style.transform = `translateX(${targetLeft - stretchAmount}px)`;
+      indicator.style.transform = `translateX(${targetLeft - stretchAmount}px) scale(1.03, 1.03)`;
       indicator.style.width = `${expandedWidth}px`;
     } else {
-      indicator.style.transform = `translateX(${targetLeft}px)`;
+      indicator.style.transform = `translateX(${targetLeft}px) scale(1.03, 1.03)`;
       indicator.style.width = `${targetWidth}px`;
     }
 
-    // Elastic snap-back
     setTimeout(() => {
       indicator.style.transition = `
         transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
         width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)
       `;
-      indicator.style.transform = `translateX(${targetLeft}px)`;
+      indicator.style.transform = `translateX(${targetLeft}px) scale(1, 1)`;
       indicator.style.width = `${targetWidth}px`;
     }, 180);
   }
@@ -669,6 +669,8 @@ function updateIndicator(targetTab, animateFluid = true) {
   }
 
   // --- Pointer Drag Handling on Skills Tab Container ---
+  let skillsContainerRect = null;
+
   if (tabsContainer && indicator) {
     tabsContainer.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
@@ -679,74 +681,69 @@ function updateIndicator(targetTab, animateFluid = true) {
       skillsStartX = e.clientX;
       skillsDragDirection = 0;
 
-      const containerRect = tabsContainer.getBoundingClientRect();
+      skillsContainerRect = tabsContainer.getBoundingClientRect(); // Cache once
       const indicatorRect = indicator.getBoundingClientRect();
-      skillsInitialLeft = indicatorRect.left - containerRect.left;
+      skillsInitialLeft = indicatorRect.left - skillsContainerRect.left;
       skillsInitialWidth = indicatorRect.width;
     });
 
     window.addEventListener("pointermove", (e) => {
-  if (!isSkillsPointerDown) return;
+      if (!isSkillsPointerDown) return;
 
-  const deltaX = e.clientX - skillsStartX;
-  skillsDragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
+      const deltaX = e.clientX - skillsStartX;
+      skillsDragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
 
-  if (!isSkillsDragging && Math.abs(deltaX) > 6) {
-    isSkillsDragging = true;
-    skillsDragThresholdPassed = true;
-    indicator.classList.add("is-dragging");
-  }
+      if (!isSkillsDragging && Math.abs(deltaX) > 6) {
+        isSkillsDragging = true;
+        skillsDragThresholdPassed = true;
+        indicator.classList.add("is-dragging");
+        indicator.classList.add("is-pointer-dragging"); // Suppress transition
+      }
 
-  if (isSkillsDragging) {
-    e.preventDefault();
-    const containerRect = tabsContainer.getBoundingClientRect();
+      if (isSkillsDragging) {
+        e.preventDefault();
+        const stretchFactor = 0.38;
+        const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 40);
 
-    const stretchFactor = 0.38;
-    const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 40);
+        let newLeft = deltaX > 0 ? skillsInitialLeft + deltaX - stretch : skillsInitialLeft + deltaX;
+        let newWidth = skillsInitialWidth + stretch;
 
-    let newLeft = skillsInitialLeft;
-    let newWidth = skillsInitialWidth + stretch;
+        const maxLeft = (skillsContainerRect ? skillsContainerRect.width : tabsContainer.offsetWidth) - newWidth;
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
 
-    if (deltaX > 0) {
-      newLeft = skillsInitialLeft + deltaX - stretch;
-    } else {
-      newLeft = skillsInitialLeft + deltaX;
-    }
+        const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
 
-    const maxLeft = containerRect.width - newWidth;
-    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        indicator.style.width = `${newWidth}px`;
+        indicator.style.transform = `translateX(${newLeft}px) scale(1.08, ${liquidSqueeze * 1.08})`;
 
-    const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
+        const currentCenterX = newLeft + newWidth / 2;
+        const closest = getClosestSkillTab(currentCenterX);
+        if (closest && closest !== currentTargetTab) {
+          currentTargetTab = closest;
+          tabs.forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+          });
+          closest.classList.add('active');
+          closest.setAttribute('aria-selected', 'true');
+        }
+      }
+    });
 
-    indicator.style.width = `${newWidth}px`;
-    indicator.style.transform = `translateX(${newLeft}px) scaleY(${liquidSqueeze})`;
-
-    const currentCenterX = newLeft + newWidth / 2;
-    const closest = getClosestSkillTab(currentCenterX);
-    if (closest && closest !== currentTargetTab) {
-      currentTargetTab = closest;
-      tabs.forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      closest.classList.add('active');
-      closest.setAttribute('aria-selected', 'true');
-    }
-  }
-});
-
-    window.addEventListener("pointerup", (e) => {
+    window.addEventListener("pointerup", () => {
       if (!isSkillsPointerDown) return;
       isSkillsPointerDown = false;
 
       if (isSkillsDragging) {
         isSkillsDragging = false;
-        indicator.classList.remove("is-dragging");
+        indicator.classList.remove("is-pointer-dragging"); // Restore smooth curve
 
-        const containerRect = tabsContainer.getBoundingClientRect();
-        const indicatorRect = indicator.getBoundingClientRect();
-        const currentCenterX = (indicatorRect.left - containerRect.left) + indicatorRect.width / 2;
-        const targetTab = getClosestSkillTab(currentCenterX);
+        setTimeout(() => {
+          indicator.classList.remove("is-dragging");
+        }, 400);
+
+        const containerWidth = skillsContainerRect ? skillsContainerRect.width : tabsContainer.offsetWidth;
+        const targetTab = currentTargetTab || tabs[0];
 
         if (targetTab) {
           activateSkillTab(targetTab, false);
@@ -956,8 +953,7 @@ function updatePortfolioIndicator(targetBtn, animateFluid = true) {
   portIndicator.style.width = `${btnWidth}px`;
 }
 
-  // Momentum forward overshoot & snap on drag release
-  function releasePortfolioWithOvershoot(targetBtn, direction) {
+function releasePortfolioWithOvershoot(targetBtn, direction) {
     if (!targetBtn || !portIndicator || !filterRow) return;
 
     const rowRect = filterRow.getBoundingClientRect();
@@ -974,13 +970,13 @@ function updatePortfolioIndicator(targetBtn, animateFluid = true) {
     `;
 
     if (direction > 0) {
-      portIndicator.style.transform = `translateX(${targetLeft}px)`;
+      portIndicator.style.transform = `translateX(${targetLeft}px) scale(1.03, 1.03)`;
       portIndicator.style.width = `${expandedWidth}px`;
     } else if (direction < 0) {
-      portIndicator.style.transform = `translateX(${targetLeft - stretchAmount}px)`;
+      portIndicator.style.transform = `translateX(${targetLeft - stretchAmount}px) scale(1.03, 1.03)`;
       portIndicator.style.width = `${expandedWidth}px`;
     } else {
-      portIndicator.style.transform = `translateX(${targetLeft}px)`;
+      portIndicator.style.transform = `translateX(${targetLeft}px) scale(1.03, 1.03)`;
       portIndicator.style.width = `${targetWidth}px`;
     }
 
@@ -989,7 +985,7 @@ function updatePortfolioIndicator(targetBtn, animateFluid = true) {
         transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
         width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)
       `;
-      portIndicator.style.transform = `translateX(${targetLeft}px)`;
+      portIndicator.style.transform = `translateX(${targetLeft}px) scale(1, 1)`;
       portIndicator.style.width = `${targetWidth}px`;
     }, 180);
   }
@@ -1034,6 +1030,8 @@ function updatePortfolioIndicator(targetBtn, animateFluid = true) {
   }
 
   // --- Pointer Drag Handling on Filter Row ---
+  let filterRowRect = null;
+
   if (filterRow && portIndicator) {
     filterRow.addEventListener("pointerdown", (e) => {
       if (e.button !== 0) return;
@@ -1044,70 +1042,64 @@ function updatePortfolioIndicator(targetBtn, animateFluid = true) {
       portStartX = e.clientX;
       portDragDirection = 0;
 
-      const rowRect = filterRow.getBoundingClientRect();
+      filterRowRect = filterRow.getBoundingClientRect(); // Cache once
       const indicatorRect = portIndicator.getBoundingClientRect();
-      portInitialLeft = indicatorRect.left - rowRect.left;
+      portInitialLeft = indicatorRect.left - filterRowRect.left;
       portInitialWidth = indicatorRect.width;
     });
 
     window.addEventListener("pointermove", (e) => {
-  if (!isPortPointerDown) return;
+      if (!isPortPointerDown) return;
 
-  const deltaX = e.clientX - portStartX;
-  portDragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
+      const deltaX = e.clientX - portStartX;
+      portDragDirection = deltaX > 0 ? 1 : deltaX < 0 ? -1 : 0;
 
-  if (!isPortDragging && Math.abs(deltaX) > 6) {
-    isPortDragging = true;
-    portDragThresholdPassed = true;
-    portIndicator.classList.add("is-dragging");
-  }
+      if (!isPortDragging && Math.abs(deltaX) > 6) {
+        isPortDragging = true;
+        portDragThresholdPassed = true;
+        portIndicator.classList.add("is-dragging");
+        portIndicator.classList.add("is-pointer-dragging"); // Suppress transition
+      }
 
-  if (isPortDragging) {
-    e.preventDefault();
-    const rowRect = filterRow.getBoundingClientRect();
+      if (isPortDragging) {
+        e.preventDefault();
+        const stretchFactor = 0.38;
+        const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 42);
 
-    const stretchFactor = 0.38;
-    const stretch = Math.min(Math.abs(deltaX) * stretchFactor, 42);
+        let newLeft = deltaX > 0 ? portInitialLeft + deltaX - stretch : portInitialLeft + deltaX;
+        let newWidth = portInitialWidth + stretch;
 
-    let newLeft = portInitialLeft;
-    let newWidth = portInitialWidth + stretch;
+        const maxLeft = (filterRowRect ? filterRowRect.width : filterRow.offsetWidth) - newWidth;
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
 
-    if (deltaX > 0) {
-      newLeft = portInitialLeft + deltaX - stretch;
-    } else {
-      newLeft = portInitialLeft + deltaX;
-    }
+        const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
 
-    const maxLeft = rowRect.width - newWidth;
-    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        portIndicator.style.width = `${newWidth}px`;
+        portIndicator.style.transform = `translateX(${newLeft}px) scale(1.08, ${liquidSqueeze * 1.08})`;
 
-    const liquidSqueeze = Math.max(0.88, 1 - (stretch / 200));
+        const currentCenterX = newLeft + newWidth / 2;
+        const closest = getClosestFilterBtn(currentCenterX);
+        if (closest && closest !== currentTargetFilterBtn) {
+          currentTargetFilterBtn = closest;
+          filterBtns.forEach(b => b.classList.remove("active"));
+          closest.classList.add("active");
+        }
+      }
+    });
 
-    portIndicator.style.width = `${newWidth}px`;
-    portIndicator.style.transform = `translateX(${newLeft}px) scaleY(${liquidSqueeze})`;
-
-    const currentCenterX = newLeft + newWidth / 2;
-    const closest = getClosestFilterBtn(currentCenterX);
-    if (closest && closest !== currentTargetFilterBtn) {
-      currentTargetFilterBtn = closest;
-      filterBtns.forEach(b => b.classList.remove("active"));
-      closest.classList.add("active");
-    }
-  }
-});
-
-    window.addEventListener("pointerup", (e) => {
+    window.addEventListener("pointerup", () => {
       if (!isPortPointerDown) return;
       isPortPointerDown = false;
 
       if (isPortDragging) {
         isPortDragging = false;
-        portIndicator.classList.remove("is-dragging");
+        portIndicator.classList.remove("is-pointer-dragging"); // Restore smooth curve
 
-        const rowRect = filterRow.getBoundingClientRect();
-        const indicatorRect = portIndicator.getBoundingClientRect();
-        const currentCenterX = (indicatorRect.left - rowRect.left) + indicatorRect.width / 2;
-        const targetBtn = getClosestFilterBtn(currentCenterX);
+        setTimeout(() => {
+          portIndicator.classList.remove("is-dragging");
+        }, 400);
+
+        const targetBtn = currentTargetFilterBtn || filterBtns[0];
 
         if (targetBtn) {
           activateFilterBtn(targetBtn, false);
@@ -1491,4 +1483,3 @@ function updatePortfolioIndicator(targetBtn, animateFluid = true) {
     if (e.target === modal) hideModal();
   });
 })();
-
