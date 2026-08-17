@@ -263,6 +263,7 @@ section{ position:relative; }
 }
 
 /* Glassy look */
+/* Glassy look + Lift up / Float effect */
 .nav-indicator.is-dragging {
   background: rgba(255, 255, 255, 0.14) !important;
   background-image: none !important;
@@ -271,7 +272,7 @@ section{ position:relative; }
   border: 1px solid rgba(255, 255, 255, 0.35) !important;
   box-shadow: 
     inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    0 8px 24px -4px rgba(0, 0, 0, 0.35) !important;
+    0 14px 28px -4px rgba(0, 0, 0, 0.45) !important; /* Increased shadow for lift */
 }
 .nav-indicator.is-pointer-dragging {
   transition: none !important;
@@ -1413,9 +1414,9 @@ section{ position:relative; }
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 
   opacity: 0;
   visibility: hidden;
@@ -1424,14 +1425,13 @@ section{ position:relative; }
     opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1),
     visibility 0.38s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 .p-modal-backdrop.open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
 
-/* 3. The expanding modal card */
+/* 3. The expanding modal box with local frosted glass blur */
 .p-modal-content {
   position: relative;
   width: 100%;
@@ -1439,15 +1439,12 @@ section{ position:relative; }
   padding: 36px 32px;
   color: #ffffff;
   background: transparent;
+  border-radius: var(--radius-lg);
 
-  /* Closed state at button position */
   transform: translate3d(var(--origin-x, 0px), var(--origin-y, 0px), 0) scale(var(--origin-scale, 0.2));
   opacity: 0;
   will-change: transform, opacity;
-
-  transition: 
-    transform 0.35s cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.28s cubic-bezier(0.32, 0.72, 0, 1);
 }
 /* 4. Frosted Glass Shell: stretches left/right independently */
 .p-modal-content::before {
@@ -1456,21 +1453,14 @@ section{ position:relative; }
   inset: 0;
   z-index: 1;
   border-radius: var(--radius-lg);
-  background: rgba(25, 25, 25, 0.65);
-
-  /* Frosted Glass */
+  background: rgba(25, 25, 25, 0.82);
   backdrop-filter: blur(24px) saturate(190%);
   -webkit-backdrop-filter: blur(24px) saturate(190%);
-
-  /* Light-bending lens rim */
   border-top: 1px solid rgba(255, 255, 255, 0.45);
   border-left: 1px solid rgba(255, 255, 255, 0.2);
   border-right: 1px solid rgba(255, 255, 255, 0.2);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.3),
-    0 24px 48px rgba(0, 0, 0, 0.5);
-
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.3), 0 24px 48px rgba(0, 0, 0, 0.6);
   transform-origin: center center;
   will-change: transform;
 }
@@ -1526,14 +1516,12 @@ section{ position:relative; }
   will-change: opacity, transform;
 }
 
-/* Fades and settles into place immediately alongside the expanding box */
 .p-modal-backdrop.open .p-modal-body,
 .p-modal-backdrop.open .p-modal-close {
   opacity: 1;
   transform: translateY(0);
-  transition: 
-    opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s,
-    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
+  transition: opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s,
+              transform 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
 }
 
 @keyframes counterScaleBody {
@@ -2267,7 +2255,6 @@ main > section:nth-of-type(2) {
 .mobile-notice-btn {
   display: inline-flex;
   margin: 0 auto;
-  padding: 11px 32px;
   font-size: 13px;
   font-weight: 600;
   color: #ffffff;
@@ -2277,7 +2264,18 @@ main > section:nth-of-type(2) {
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 8px 20px -6px rgba(41, 50, 60, 0.6);
   border-radius: var(--radius-pill);
-  transition: transform 0.25s ease, background-position 0.4s ease, box-shadow 0.25s ease;
+  user-select: none;
+  -webkit-user-select: none;
+
+  /* Base padding matching the compact button layout */
+  padding: 11px 32px;
+
+  /* Spring release & gradient shift animation */
+  transition: 
+    padding 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.35),
+    transform 0.25s ease,
+    background-position 0.5s ease,
+    box-shadow 0.25s ease;
 }
 
 .mobile-notice-btn:hover {
@@ -2285,19 +2283,30 @@ main > section:nth-of-type(2) {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px -6px rgba(41, 50, 60, 0.8);
 }
-
 .mobile-notice-btn:active {
+  padding: 11px 52px;
   transform: translateY(0);
+  box-shadow: 0 4px 12px -3px rgba(0, 0, 0, 0.6);
+  transition: padding 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable transition during active drag gesture so finger tracking is instant */
+.skills-indicator.is-pointer-dragging,
+.portfolio-indicator.is-pointer-dragging {
+  transition: none !important;
+}
+
+.skills-indicator,
+.portfolio-indicator {
+  will-change: transform, width, opacity;
 }
 
 .skills-indicator.is-dragging,
 .portfolio-indicator.is-dragging {
-  background: rgba(38, 38, 38, 0.35) !important;
+  background: rgba(38, 38, 38, 0.45) !important;
   background-image: none !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.35) !important;
-  box-shadow: 
-    inset 0 1px 2px rgba(255, 255, 255, 0.25), 
-    0 8px 24px -4px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 10px 20px -4px rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
 }
