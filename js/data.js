@@ -50,7 +50,7 @@ const EDUCATION = [
     period: "2028",
     degree: "B.Sc. in Computer Science and Engineering",
     gpa: "5th Semester",
-    school: "University of Asia Pacific, Dhaka"
+    school: "University of Asia Pacific"
   }
 ];
 
