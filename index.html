@@ -173,24 +173,27 @@
       <div class="contact-social" id="contactSocial" aria-label="Social links"></div>
     </div>
 
-    <form class="contact-form" id="contactForm" action="https://api.web3forms.com/submit" method="POST" data-reveal>
+    <form class="contact-form" id="contactForm" action="https://api.web3forms.com/submit" method="POST" novalidate data-reveal>
   <!-- Web3Forms Access Key -->
   <input type="hidden" name="access_key" value="49f28843-6c54-43db-9020-e458dec093cd">
 
   <div class="form-row">
     <div class="field">
-      <label for="fname">Name</label>
+      <label for="fname">Name <span class="req-star">*</span></label>
       <input id="fname" name="name" type="text" placeholder="Your name" required>
+      <span class="error-msg">This field is required</span>
     </div>
     <div class="field">
-      <label for="femail">Email</label>
+      <label for="femail">Email <span class="req-star">*</span></label>
       <input id="femail" name="email" type="email" placeholder="you@email.com" required>
+      <span class="error-msg">This field is required</span>
     </div>
   </div>
 
   <div class="field">
-    <label for="fmsg">Message</label>
+    <label for="fmsg">Message <span class="req-star">*</span></label>
     <textarea id="fmsg" name="message" rows="5" placeholder="Tell me a little about the project…" required></textarea>
+    <span class="error-msg">This field is required</span>
   </div>
 
   <button type="submit" class="btn btn-primary">Send message</button>
