@@ -1224,7 +1224,7 @@ function releasePortfolioWithOvershoot(targetBtn, direction) {
   if (statsSection) statsObserver.observe(statsSection);
 
   /* ============================================================
-   CONTACT INFO + form submission with stretch animation
+   CONTACT INFO + form submission with validation & stretch animation
    ============================================================ */
 if (typeof CONTACT_INFO !== "undefined") {
   const emailEl = document.getElementById("contactEmail");
@@ -1237,9 +1237,34 @@ const contactForm = document.getElementById('contactForm');
 
 if (contactForm) {
   const submitBtn = contactForm.querySelector('button[type="submit"]');
+  const requiredInputs = contactForm.querySelectorAll('input[required], textarea[required]');
+
+  // Clear red error state when the user starts typing
+  requiredInputs.forEach(input => {
+    input.addEventListener('input', () => {
+      if (input.value.trim() !== '') {
+        input.closest('.field').classList.remove('has-error');
+      }
+    });
+  });
 
   contactForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    let isValid = true;
+
+    // Validate each required field
+    requiredInputs.forEach(input => {
+      const fieldContainer = input.closest('.field');
+      if (!input.value.trim()) {
+        fieldContainer.classList.add('has-error');
+        isValid = false;
+      } else {
+        fieldContainer.classList.remove('has-error');
+      }
+    });
+
+    if (!isValid) return;
 
     const formData = new FormData(contactForm);
     const originalText = submitBtn.textContent;
@@ -1254,11 +1279,9 @@ if (contactForm) {
       });
 
       if (response.ok) {
-        // 1. Vanish the form box
         contactForm.classList.add('form-submitting');
 
         setTimeout(() => {
-          // 2. Replace form with success box matching the navbar stretch animation
           const successBox = document.createElement('div');
           successBox.className = 'contact-form-success';
           successBox.innerHTML = '<p>Messages sent successfully!</p>';
