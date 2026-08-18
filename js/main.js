@@ -33,6 +33,22 @@
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
 
+  /* ============================================================
+     THEME TOGGLE — light / dark mode, persisted to localStorage.
+     The actual theme is already applied pre-paint by the inline
+     script in <head>; this just wires up the button and keeps it
+     in sync with whatever theme is currently active.
+     ============================================================ */
+  const themeToggle = document.getElementById("themeToggle");
+  if (themeToggle) {
+    themeToggle.addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      try { localStorage.setItem("theme", next); } catch (e) {}
+    });
+  }
+
   // 1. Mobile Menu Open & Close
   function openMobileNav() {
     if (!navToggle || !navLinks) return;
@@ -1224,7 +1240,7 @@ function releasePortfolioWithOvershoot(targetBtn, direction) {
   if (statsSection) statsObserver.observe(statsSection);
 
   /* ============================================================
-   CONTACT INFO + form submission with validation & stretch animation
+   CONTACT INFO + form submission with stretch animation
    ============================================================ */
 if (typeof CONTACT_INFO !== "undefined") {
   const emailEl = document.getElementById("contactEmail");
@@ -1237,34 +1253,51 @@ const contactForm = document.getElementById('contactForm');
 
 if (contactForm) {
   const submitBtn = contactForm.querySelector('button[type="submit"]');
-  const requiredInputs = contactForm.querySelectorAll('input[required], textarea[required]');
 
-  // Clear red error state when the user starts typing
-  requiredInputs.forEach(input => {
-    input.addEventListener('input', () => {
-      if (input.value.trim() !== '') {
-        input.closest('.field').classList.remove('has-error');
+  /* Validates required fields (and email format), toggling the
+     .invalid class that reveals each field's .error-msg. Returns
+     true only when every required field passes. */
+  function validateContactForm() {
+    let isValid = true;
+    let firstInvalidEl = null;
+
+    contactForm.querySelectorAll('[required]').forEach((el) => {
+      const field = el.closest('.field');
+      if (!field) return;
+
+      const value = el.value.trim();
+      const isEmpty = value === '';
+      const isBadEmail = el.type === 'email' && !isEmpty && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      const fieldInvalid = isEmpty || isBadEmail;
+
+      field.classList.toggle('invalid', fieldInvalid);
+
+      const errorMsg = field.querySelector('.error-msg');
+      if (errorMsg) {
+        errorMsg.textContent = isBadEmail ? 'Enter a valid email address' : 'This field is required';
       }
+
+      if (fieldInvalid) {
+        isValid = false;
+        if (!firstInvalidEl) firstInvalidEl = el;
+      }
+    });
+
+    if (firstInvalidEl) firstInvalidEl.focus();
+    return isValid;
+  }
+
+  // Clear a field's error as soon as the person starts fixing it
+  contactForm.querySelectorAll('.field input, .field textarea').forEach((el) => {
+    el.addEventListener('input', () => {
+      el.closest('.field')?.classList.remove('invalid');
     });
   });
 
   contactForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    let isValid = true;
-
-    // Validate each required field
-    requiredInputs.forEach(input => {
-      const fieldContainer = input.closest('.field');
-      if (!input.value.trim()) {
-        fieldContainer.classList.add('has-error');
-        isValid = false;
-      } else {
-        fieldContainer.classList.remove('has-error');
-      }
-    });
-
-    if (!isValid) return;
+    if (!validateContactForm()) return;
 
     const formData = new FormData(contactForm);
     const originalText = submitBtn.textContent;
@@ -1279,9 +1312,11 @@ if (contactForm) {
       });
 
       if (response.ok) {
+        // 1. Vanish the form box
         contactForm.classList.add('form-submitting');
 
         setTimeout(() => {
+          // 2. Replace form with success box matching the navbar stretch animation
           const successBox = document.createElement('div');
           successBox.className = 'contact-form-success';
           successBox.innerHTML = '<p>Messages sent successfully!</p>';
