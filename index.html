@@ -9,6 +9,17 @@
 <title>Riyad Hossen Sajjad — Developer | Illustrator | Data Analyst</title>
 <meta name="description" content="Portfolio of Riyad Hossen Sajjad — children's book illustrator, CSE Student, and astrophysics enthusiast.">
 
+<script>
+  // Set the theme before first paint so there's no light-mode flash
+  // for returning visitors who picked dark mode.
+  (function(){
+    try{
+      var theme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }catch(e){}
+  })();
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@50;60;70;80;90;100;200;300;400;700;800;900&display=swap" rel="stylesheet">
@@ -30,6 +41,22 @@
         <li><a href="#portfolio" data-nav>Portfolio</a></li>
         <li><a href="#contact" data-nav>Contact</a></li>
       </ul>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4.5"></circle>
+          <line x1="12" y1="2.5" x2="12" y2="4.5"></line>
+          <line x1="12" y1="19.5" x2="12" y2="21.5"></line>
+          <line x1="4.2" y1="4.2" x2="5.6" y2="5.6"></line>
+          <line x1="18.4" y1="18.4" x2="19.8" y2="19.8"></line>
+          <line x1="2.5" y1="12" x2="4.5" y2="12"></line>
+          <line x1="19.5" y1="12" x2="21.5" y2="12"></line>
+          <line x1="4.2" y1="19.8" x2="5.6" y2="18.4"></line>
+          <line x1="18.4" y1="5.6" x2="19.8" y2="4.2"></line>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"></path>
+        </svg>
+      </button>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
