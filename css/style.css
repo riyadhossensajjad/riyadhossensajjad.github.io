@@ -17,6 +17,12 @@
   --muted:       #7B7461;
   --muted-on-navy: #A6ADC9;
 
+  /* theme-switchable surfaces — these move between light/dark,
+     while --paper/--navy-deep above stay fixed (they're used as
+     permanent light-on-dark accents in the hero/testimonials/footer) */
+  --page-bg:     var(--paper);
+  --card-bg:     #ffffff;
+
   /* type */
   --font-display: 'Montserrat', sans-serif;
   --font-utility: 'Montserrat', sans-serif;
@@ -33,6 +39,22 @@
 }
 
 /* ============================================================
+   DARK THEME
+   Overrides only the tokens used for switchable page surfaces/text.
+   --paper, --navy-deep, --gold, --teal, --muted-on-navy stay the same
+   in both themes since they're used as permanent light-on-dark accents
+   (hero, testimonials, footer) that must not flip.
+   ============================================================ */
+[data-theme="dark"]{
+  --page-bg:     #1c1c1e;
+  --paper-dim:   #232327;
+  --paper-line:  rgba(255,255,255,.10);
+  --card-bg:     #2a2b30;
+  --ink:         #ECEAE5;
+  --muted:       #A79F91;
+}
+
+/* ============================================================
    RESET
    ============================================================ */
 *, *::before, *::after{ box-sizing: border-box; }
@@ -41,9 +63,10 @@ body{
   margin:0;
   font-family: 'Montserrat', sans-serif;
   color: var(--ink);
-  background: var(--paper);
+  background: var(--page-bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  transition: background .4s var(--ease), color .4s var(--ease);
 }
 img{ max-width:100%; display:block; }
 a{ color:inherit; text-decoration:none; }
@@ -638,7 +661,7 @@ section{ position:relative; }
 /* ============================================================
    ABOUT
    ============================================================ */
-.about{ background: var(--paper); }
+.about{ background: var(--page-bg); }
 .about-grid {
   display: grid;
   grid-template-columns: 0.8fr 1fr; /* Increases width given to the image side */
@@ -662,7 +685,7 @@ section{ position:relative; }
 .about-tag{
   position:absolute;
   left: 22px; bottom: 22px;
-  background: var(--paper);
+  background: var(--page-bg);
   color: var(--ink);
   padding: 12px 20px;
   border-radius: var(--radius-pill);
@@ -718,7 +741,7 @@ section{ position:relative; }
   font-size: 13px;
   letter-spacing:.02em;
 }
-.skillbar-label span:last-child{ color: #262626; }
+.skillbar-label span:last-child{ color: var(--ink); }
 .skillbar-track{
   height: 8px;
   border-radius: var(--radius-pill);
@@ -736,7 +759,7 @@ section{ position:relative; }
 /* ============================================================
    EDUCATION — three-stop connecting-line timeline
    ============================================================ */
-.education{ background: var(--paper); }
+.education{ background: var(--page-bg); }
 
 .edu-timeline{
   position: relative;
@@ -778,7 +801,7 @@ section{ position:relative; }
   border-radius: 50%;
   background: #ffffff;
   border: 2.5px solid #485563;
-  box-shadow: 0 0 0 5px var(--paper), 0 4px 12px rgba(41, 50, 60, 0.25);
+  box-shadow: 0 0 0 5px var(--page-bg), 0 4px 12px rgba(41, 50, 60, 0.25);
   margin-bottom: 26px;
   flex-shrink: 0;
   z-index: 2;
@@ -786,11 +809,11 @@ section{ position:relative; }
 
 .edu-card{
   width: 100%;
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: var(--radius-md);
   padding: 22px 20px;
   border: 1.5px solid transparent;
-  background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
+  background-image: linear-gradient(var(--card-bg), var(--card-bg)), linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   transition: transform .35s var(--ease), box-shadow .35s var(--ease);
@@ -958,10 +981,10 @@ section{ position:relative; }
   flex-direction: column;
   justify-content: center;
   padding: 16px 22px;
-  background: #ffffff;
+  background: var(--card-bg);
   border-radius: var(--radius-md);
   border: 1.9px solid transparent;
-  background-image: linear-gradient(#ffffff, #ffffff), linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
+  background-image: linear-gradient(var(--card-bg), var(--card-bg)), linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   box-shadow: 0 1px 0 var(--paper-line);
@@ -1152,7 +1175,7 @@ section{ position:relative; }
 /* ============================================================
    PORTFOLIO
    ============================================================ */
-.portfolio{ background: var(--paper); }
+.portfolio{ background: var(--page-bg); }
 .filter-row {
   position: relative; /*[cite: 2]*/
   display: flex; /*[cite: 2]*/
@@ -1195,7 +1218,7 @@ section{ position:relative; }
   -webkit-user-select: none;
 }
 .filter-btn:hover {
-  color: rgb(38, 38, 38); /*[cite: 2]*/
+  color: var(--ink); /*[cite: 2]*/
 }
 
 .filter-btn.active {
@@ -1277,7 +1300,7 @@ section{ position:relative; }
   /* Gradient border */
   border: 1.9px solid transparent;
   background-image: 
-    linear-gradient(var(--paper), var(--paper)), 
+    linear-gradient(var(--page-bg), var(--page-bg)), 
     linear-gradient(to right, #485563 0%, #29323c 51%, #485563 100%);
   background-origin: border-box;
   background-clip: padding-box, border-box;
@@ -1331,7 +1354,7 @@ section{ position:relative; }
   padding: 7px 14px;
   border-radius: var(--radius-pill);
   background: rgb(231, 169, 76);
-  color: var(--ink);
+  color: #262626;
   font-family: 'Montserrat', sans-serif;
   font-size: 11px;
   letter-spacing:.06em;
@@ -1339,7 +1362,7 @@ section{ position:relative; }
 }
 .p-body {
   padding: 20px 22px 24px; /*[cite: 6] */
-  background: var(--paper); /*[cite: 6] */
+  background: var(--page-bg); /*[cite: 6] */
   flex: 1;                    /* 2. Stretch the light body to the bottom of the card */
   display: flex;
   flex-direction: column;
@@ -1382,7 +1405,7 @@ section{ position:relative; }
   font-weight: 600;
   color: var(--ink);
   background: transparent;
-  border: 1.5px solid rgb(38, 38, 38);
+  border: 1.5px solid var(--ink);
   border-radius: var(--radius-pill);
   padding: 8px 18px;
   display: inline-flex;
@@ -1725,7 +1748,7 @@ section{ position:relative; }
    CONTACT
    ============================================================ */
 .contact{ 
-  background: var(--paper); /*[cite: 6] */
+  background: var(--page-bg); /*[cite: 6] */
 }
 
 .contact-grid{
@@ -1803,7 +1826,7 @@ section{ position:relative; }
   display: flex; 
   align-items: center; 
   justify-content: center; /*[cite: 6] */
-  color: rgb(38, 38, 38);            /* Changed icon color to rgb(38, 38, 38) */
+  color: var(--ink);            /* Changed icon color to rgb(38, 38, 38) */
   flex-shrink: 0; /*[cite: 6] */
 }
 
@@ -1830,8 +1853,8 @@ section{ position:relative; }
 }
 
 .contact-social a:hover{ 
-  border-color: rgb(38, 38, 38); 
-  background: rgba(38, 38, 38, 0.1);
+  border-color: var(--ink); 
+  background: rgba(128, 128, 128, 0.14);
   transform: translateY(-3px); 
 }
 .contact-social svg{ width: 17px; height: 17px; } /*[cite: 6] */
@@ -1911,7 +1934,7 @@ section{ position:relative; }
   width: 100%;
   box-sizing: border-box;
   border: 1px solid var(--paper-line);
-  background: var(--paper);
+  background: var(--page-bg);
   border-radius: var(--radius-md);
   padding: 14px 18px;
   font-family: 'Montserrat', sans-serif;
@@ -1927,36 +1950,36 @@ section{ position:relative; }
   border-color: #485563; /*[cite: 6] */
 }
 
-/* ============================================================
-   FORM ERROR STYLES & REQUIRED STARS (ADD HERE)
-   ============================================================ */
-.field label .req-star {
-  color: #e53e3e;
+/* Required-field marker */
+.req-star{
+  color: #c0392b;
   margin-left: 2px;
 }
+[data-theme="dark"] .req-star{
+  color: #ff8a80;
+}
 
-.field .error-msg {
+/* Inline validation error message — hidden until the field is marked invalid */
+.error-msg{
   display: none;
-  font-size: 11.5px;
-  color: #e53e3e;
-  margin-top: 6px;
-  font-weight: 500;
+  margin-top: 7px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  color: #c0392b;
 }
-
-.field.has-error input,
-.field.has-error textarea {
-  border-color: #e53e3e !important;
+[data-theme="dark"] .error-msg{
+  color: #ff8a80;
 }
-
-.field.has-error .error-msg {
+.field.invalid input,
+.field.invalid textarea{
+  border-color: #c0392b;
+}
+[data-theme="dark"] .field.invalid input,
+[data-theme="dark"] .field.invalid textarea{
+  border-color: #ff8a80;
+}
+.field.invalid .error-msg{
   display: block;
-}
-
-.form-note{
-  margin-top: 12px;
-  text-align: center;
-  font-size: 12.5px;
-  color: var(--muted);
 }
 
 .form-note{
@@ -2067,7 +2090,7 @@ section{ position:relative; }
 
 /* 1. Clip the Hero section into the exact angled shape */
 body {
-  background-color: #ffffff;
+  background-color: var(--page-bg);
 }
 .hero {
   position: relative;
@@ -2092,7 +2115,7 @@ body {
 .hero + section,
 #about,
 main > section:nth-of-type(2) {
-  background-color: #ffffff !important; /* Change to var(--paper) if using cream */
+  background-color: var(--page-bg) !important;
   position: relative;
   z-index: 1;
 }
@@ -2437,4 +2460,63 @@ main > section:nth-of-type(2) {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ============================================================
+   DARK MODE — theme toggle button (lives in the navbar, always
+   sits on the dark glass bar so it uses the same fixed light
+   icon color the brand/hamburger already use)
+   ============================================================ */
+.theme-toggle{
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(250, 246, 236, 0.4);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--paper);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color .3s var(--ease), background .3s var(--ease), transform .3s var(--ease);
+}
+.theme-toggle:hover{
+  border-color: var(--paper);
+  background: rgba(250, 246, 236, 0.12);
+  transform: translateY(-2px);
+}
+.theme-toggle svg{ width: 18px; height: 18px; }
+.theme-toggle .icon-sun{ display: none; }
+.theme-toggle .icon-moon{ display: block; }
+[data-theme="dark"] .theme-toggle .icon-sun{ display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon{ display: none; }
+
+/* ============================================================
+   DARK MODE — accent-text refinements
+   The brand slate-blue (#485563 / #29323c) is used as body text
+   inside a few white cards. Lighten it in dark mode so it keeps
+   enough contrast against the darker card surface, without
+   leaving the palette's blue-grey family.
+   ============================================================ */
+[data-theme="dark"] .edu-period,
+[data-theme="dark"] .edu-gpa,
+[data-theme="dark"] .skill-card-top h4 {
+  color: #9AB0C4;
+}
+[data-theme="dark"] .skill-card-top span {
+  color: #A9B7C4;
+}
+[data-theme="dark"] .skill-icon-mask,
+[data-theme="dark"] .skill-card:hover .skill-icon-mask {
+  background-color: #9AB0C4;
+}
+
+/* Smooth cross-fade for section-level surfaces when the theme changes.
+   (Elements that already have their own hand-tuned transition — cards,
+   the navbar, form fields — are left alone so their hover/reveal
+   animations aren't overwritten; their colors still swap instantly.) */
+body, .hero-content, .about, .education, .skills, .portfolio,
+.testimonials, .stats, .contact, .footer, .about-tag{
+  transition: background-color .4s var(--ease), color .4s var(--ease), border-color .4s var(--ease);
 }
