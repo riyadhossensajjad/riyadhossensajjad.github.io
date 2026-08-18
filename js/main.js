@@ -1224,23 +1224,60 @@ function releasePortfolioWithOvershoot(targetBtn, direction) {
   if (statsSection) statsObserver.observe(statsSection);
 
   /* ============================================================
-     CONTACT INFO + form
-     ============================================================ */
-  if (typeof CONTACT_INFO !== "undefined") {
-    const emailEl = document.getElementById("contactEmail");
-    const locEl = document.getElementById("contactLocation");
-    if (emailEl) emailEl.textContent = CONTACT_INFO.email;
-    if (locEl) locEl.textContent = CONTACT_INFO.location;
-  }
+   CONTACT INFO + form submission with stretch animation
+   ============================================================ */
+if (typeof CONTACT_INFO !== "undefined") {
+  const emailEl = document.getElementById("contactEmail");
+  const locEl = document.getElementById("contactLocation");
+  if (emailEl) emailEl.textContent = CONTACT_INFO.email;
+  if (locEl) locEl.textContent = CONTACT_INFO.location;
+}
 
-  const contactForm = document.getElementById("contactForm");
-  if (contactForm) {
-    contactForm.addEventListener("submit", (e) => {
-      const note = document.getElementById("formNote");
-      if (note) note.textContent = "Thanks — your message is ready to send once this form is connected to an email service.";
-      contactForm.reset();
-    });
-  }
+const contactForm = document.getElementById('contactForm');
+
+if (contactForm) {
+  const submitBtn = contactForm.querySelector('button[type="submit"]');
+
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(contactForm);
+    const originalText = submitBtn.textContent;
+
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+
+    try {
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        // 1. Vanish the form box
+        contactForm.classList.add('form-submitting');
+
+        setTimeout(() => {
+          // 2. Replace form with success box matching the navbar stretch animation
+          const successBox = document.createElement('div');
+          successBox.className = 'contact-form-success';
+          successBox.innerHTML = '<p>Messages sent successfully!</p>';
+
+          contactForm.parentNode.replaceChild(successBox, contactForm);
+        }, 350);
+      } else {
+        const data = await response.json();
+        alert('Error: ' + (data.message || 'Submission failed.'));
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
+    } catch (error) {
+      alert('Something went wrong. Please check your connection and try again.');
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+}
 
   /* ============================================================
      SCROLL REVEAL (Makes all sections visible)
